@@ -1,23 +1,9 @@
-# QuillImageDropAndPaste
-> A quill editor module for drop and paste image, with a callback hook before inserting image into the editor.
-
-This module was forked from [quill-image-drop-module]: https://www.npmjs.com/package/quill-image-drop-module <br>
-The only difference was that we could choose how to handle the image we just dropped or pasted, without inserting a base64 url image into the editor directly. <br>
-For example, a base64 string was too large, if we saved it into the database, it could easilly out of the size of the column, the best practice was to save the image on our server and returned the image's url, and finally we inserted the image with the returned url into the editor. <br>
-
-
-### Examples
-
-[React Demo](https://github.com/chenjuneking/quill-image-drop-and-paste/tree/master/example/react-demo)
-
-[Vue Demo](https://github.com/chenjuneking/quill-image-drop-and-paste/tree/master/example/vue-demo)
-
-[Simple Web Demo](https://github.com/chenjuneking/quill-image-drop-and-paste/tree/master/example/web-demo)
-
+# Quill Image
+A quill editor module that enabled image insertion through drab/drop, clipboard paste, and the default toolbars. Configuration has callback hook where you can upload the image to your servers. The base64 image preview will be replaces with the returned public URL. The inserted image has support for basic layout (float left, float right, center, and full width), image captions, and alt text.
 
 ## Install
 ```bash
-npm install quill-image-drop-and-paste --save
+yarn add quill-image --save
 ```
 
 ## Usage
@@ -26,105 +12,52 @@ npm install quill-image-drop-and-paste --save
 
 ```javascript
 import Quill from 'quill'
-import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
-import { base64StringToBlob } from 'blob-util'
+const { QuillImage, QuillImageBindings } = require('quill-image');
 
-Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
+Quill.register('modules/quillImage', QuillImage);
 
 const quill = new Quill('#editor-container', {
   modules: {
-    imageDropAndPaste: {
-      // add an custom image handler
-      handler: imageHandler
+    quillImage: {
+      handler,
+    },
+    keyboard: {
+      bindings: {
+        ...QuillImageBindings,
+      }
     }
   }
 })
 
 /**
 * Do something to our dropped or pasted image
+* @param.quill - the quill instance
 * @param.imageDataUrl - image's base64 url
 * @param.type - image's mime type
 */
-function imageHandler(imageDataUrl, type) {
+async function handler(quill, dataUrl, type) {
   // give a default mime type if the type was null
-  if (!type) type = 'image/png'
+  if (!type) type = 'image/png';
 
-  // base64 to blob
-  var blob = base64StringToBlob(base64URL.replace(/^data:image\/\w+;base64,/, ''), type)
+  // Convert base64 to blob
+  const blob = await fetch(b64Image).then(res => res.blob());
 
-  var filename = ['my', 'cool', 'image', '-', Math.floor(Math.random() * 1e12), '-', new Date().getTime(), '.', type.match(/^image\/(\w+)$/i)[1]].join('')
+  // Generate a filename
+  const filename = `veryUniqueFilename.${type.match(/^image\/(\w+)$/i)[1]}`;
 
-  // generate a form data
-  var formData = new FormData()
-  formData.append('filename', filename)
-  formData.append('file', blob)
+  // Generate a form data
+  const formData = new FormData();
+  formData.append('filename', filename);
+  formData.append('file', blob);
 
-  // upload image to your server
-  callUploadAPI(your_upload_url, formData, (err, res) => {
-    if (err) return
-    // success? you should return the uploaded image's url
-    // then insert into the quill editor
-    const index = (quill.getSelection() || {}).index || quill.getLength()
-    if (index) quill.insertEmbed(index, 'image', res.data.image_url, 'user')
-  })
+  // Upload your file here – promise should resolve with the public URL
+  return new Promise((resolve) => {
+    setTimeout(() => resolve('https://media2.giphy.com/media/RQgzLsPYlzrBC/source.gif'), 3000);
+  });
 }
 ```
 
-Additional, you could rewrite the toolbar's insert image button with our image handler.
-
-```javascript
-quill.getModule('toolbar').addHandler('image', (clicked) => {
-  if (clicked) {
-    let fileInput = this.container.querySelector('input.ql-image[type=file]')
-    if (fileInput == null) {
-      fileInput = document.createElement('input')
-      fileInput.setAttribute('type', 'file')
-      fileInput.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon')
-      fileInput.classList.add('ql-image')
-      fileInput.addEventListener('change', (e) => {
-        var files = e.target.files, file
-        if (files.length > 0) {
-          file = files[0]
-          var type = file.type
-          var reader = new FileReader()
-          reader.onload = (e) => {
-            // handle the inserted image
-            imageHandler(e.target.result, type)
-            fileInput.value = ''
-          }
-          reader.readAsDataURL(file)
-        }
-      })
-    }
-    fileInput.click()
-  }
-})
-```
-
-### Script Tag
-
-Copy quill-image-drop-and-paste.min.js into your web root or include from node_modules
-
-```html
-<script src="/node_modules/quill-image-drop-and-paste/quill-image-drop-and-paste.min.js"></script>
-```
-
-```javascript
-var quill = new Quill(editorSelector, {
-  // ...
-  modules: {
-    imageDropAndPaste: {
-      // add an custom image handler
-      handler: imageHandler
-    }
-  }
-});
-```
-
-### Finally
-
-If you didnot config a image handler, it will insert the image into the quill editor directory after you drop/paste a image.
-Just like the module [quill-image-drop-module]: https://www.npmjs.com/package/quill-image-drop-module did.
+If you did not config a image handler, it will insert the base64 image into the quill editor directory after you drop/paste a image.
 
 
 
