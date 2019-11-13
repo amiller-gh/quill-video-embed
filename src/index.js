@@ -212,7 +212,6 @@ function makeEmbed(quill, Quill) {
 
 			node.addEventListener('focusout', (e) => {
 				const active = document.activeElement;
-				console.log(active, node.contains(active), e)
 				if (pause || node === active || node.contains(active)) { pause = false; return; }
 				ImageBlot.simplify(node);
 			}, false);
