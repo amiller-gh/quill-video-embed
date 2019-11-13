@@ -1,5 +1,5 @@
 # Quill Image
-A quill editor module that enabled image insertion through drab/drop, clipboard paste, and the default toolbars. Configuration has callback hook where you can upload the image to your servers. The base64 image preview will be replaces with the returned public URL. The inserted image has support for basic layout (float left, float right, center, and full width), image captions, and alt text.
+A quill editor module that enables image insertion through drab/drop, clipboard paste, and the default toolbars. Configuration has callback hook where you can upload the image to your servers. The base64 image preview will be replaces with the returned public URL. The inserted image has support for basic layout (float left, float right, center, and full width), image captions, and alt text.
 
 ## Install
 ```bash
