@@ -13,7 +13,20 @@ const ICONS = {
 	right: '<svg style="transform: rotate(180deg)"><path d="M2 16.99V9.047c0-.112.042-.22.123-.32a.384.384 0 0 1 .32-.152h11.93c.102 0 .2.05.296.15.09.103.14.21.14.322v7.943c0 .122-.05.225-.14.31a.44.44 0 0 1-.31.13H2.44a.427.427 0 0 1-.44-.44zm5.847 3.517v-.87c0-.1.038-.194.114-.28.08-.086.17-.13.27-.13h14.22c.13 0 .23.046.32.14.09.09.14.18.14.27v.87a.42.42 0 0 1-.14.332c-.09.08-.19.13-.31.13H8.23a.34.34 0 0 1-.274-.14.545.545 0 0 1-.107-.34zm0-14.108v-.92c0-.13.038-.23.114-.32a.35.35 0 0 1 .27-.13h14.22c.13 0 .23.04.32.13s.14.19.14.31v.92c0 .09-.04.18-.14.26-.09.08-.19.13-.31.13H8.23c-.1 0-.19-.05-.267-.13a.447.447 0 0 1-.11-.27zm8.497 7.09v-.9c0-.15.048-.27.144-.37a.477.477 0 0 1 .328-.14l5.624-.01c.12 0 .23.04.32.14.093.09.14.21.14.36v.9c0 .11-.047.21-.14.32-.09.1-.2.15-.32.15l-5.625.01c-.12 0-.23-.05-.327-.15a.467.467 0 0 1-.144-.33zm0-3.58v-.86c0-.11.048-.22.144-.32.097-.1.207-.16.328-.15l5.624-.01c.12 0 .23.05.32.15.092.1.14.21.14.32v.87c0 .13-.047.24-.14.32-.09.08-.2.12-.32.12l-5.625.01a.45.45 0 0 1-.334-.13.408.408 0 0 1-.13-.32zm0 7.04v-.9c0-.15.05-.27.146-.37a.474.474 0 0 1 .327-.14l5.624-.01c.13 0 .23.04.33.14.09.09.14.21.14.36v.89c0 .11-.04.21-.13.32-.09.1-.2.15-.32.15l-5.62.01c-.12 0-.23-.05-.32-.16a.485.485 0 0 1-.14-.32z" fill-rule="evenodd"></path></svg>',
 	full: '<svg><path d="M3 17.004V9.01a.4.4 0 0 1 .145-.31.476.476 0 0 1 .328-.13h17.74c.12 0 .23.043.327.13a.4.4 0 0 1 .145.31v7.994a.404.404 0 0 1-.145.313.48.48 0 0 1-.328.13H3.472a.483.483 0 0 1-.327-.13.402.402 0 0 1-.145-.313zm2.212 3.554v-.87c0-.13.05-.243.145-.334a.472.472 0 0 1 .328-.137H19c.124 0 .23.045.322.137a.457.457 0 0 1 .138.335v.86c0 .12-.046.22-.138.31a.478.478 0 0 1-.32.13H5.684a.514.514 0 0 1-.328-.13.415.415 0 0 1-.145-.32zm0-14.246v-.84c0-.132.05-.243.145-.334A.477.477 0 0 1 5.685 5H19a.44.44 0 0 1 .322.138.455.455 0 0 1 .138.335v.84a.451.451 0 0 1-.138.334.446.446 0 0 1-.32.138H5.684a.466.466 0 0 1-.328-.138.447.447 0 0 1-.145-.335z" fill-rule="evenodd"></path></svg>',
 }
-function makeMenu(node, activeFormat) {
+
+function selectAll(el) {
+	if (el.setSelectionRange) {
+		el.setSelectionRange(0, el.value.length);
+		return;
+	}
+	let selection = window.getSelection();
+	let range = document.createRange();
+	range.selectNodeContents(el);
+	selection.removeAllRanges();
+	selection.addRange(range);
+}
+
+function makeMenu(node) {
 	const nav = document.createElement('nav');
 	nav.className = 'quill-image__format';
 	for (let format of FORMATS) {
@@ -27,22 +40,36 @@ function makeMenu(node, activeFormat) {
 
 		button.dataset.format = format;
 		label.dataset.format = format;
-
+		const activeFormat = node.dataset.format || 'center';
 		if (activeFormat === format) button.checked = true;
 		button.name = 'format';
 		nav.appendChild(button);
 		nav.appendChild(label);
 	}
 
-	// Quill focuses out on mousedown... Thanks Quill...
-	nav.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); }, true);
 	nav.addEventListener('click', (e) => {
 		const srcEl = e.srcElement;
+		node.pause = true;
 		node.focus();
 		if (srcEl.dataset.format) { node.dataset.format = srcEl.dataset.format; }
 	}, true);
 
 	return nav;
+}
+
+function makeAltButton(node) {
+	const altButton = document.createElement('input');
+	altButton.className = 'quill-image__alt';
+	altButton.placeholder = 'Alt text for image (optional)';
+	altButton.required = true;
+	altButton.value = node.querySelector('img').alt ? "Alt" : "";
+	altButton.addEventListener('input', e => node.querySelector('img').alt = altButton.value || "");
+	altButton.addEventListener('blur', e => altButton.value = node.querySelector('img').alt ? "Alt" : "");
+	altButton.addEventListener('focus', e => {
+		altButton.value = node.querySelector('img').alt || "";
+		selectAll(altButton);
+	});
+	return altButton;
 }
 
 const STYLES = `
@@ -58,26 +85,29 @@ const STYLES = `
 	}
 	.quill-image[data-format=full] {
 		width: 100%;
-		margin: 0 0 1.2rem;
+		margin: 0 0 12px;
 	}
 	.quill-image[data-format=center] {
 		width: 100%;
-		margin: 0 0 1.2rem;
+		margin: 0 auto 12px;
+		width: fit-content;
 	}
 	.quill-image[data-format=center] img {
 		width: auto;
 	}
 	.quill-image[data-format=left] {
-		width: calc(50% - 1.2rem);
+		width: calc(50% - 12px);
 		float: left;
-		margin: 0 1.2rem 1.2rem 0;
+		margin: 0 12px 12px 0;
 	}
 	.quill-image[data-format=right] {
-		width: calc(50% - 1.2rem);
+		width: calc(50% - 12px);
 		float: right;
-		margin: 0 0 1.2rem 1.2rem;
+		margin: 0 0 12px 12px;
 	}
 	.quill-image img {
+		box-sizing: border-box;
+		border: 1px solid transparent;
 		transition: box-shadow .15s;
 		width: 100%;
 	}
@@ -92,13 +122,14 @@ const STYLES = `
 	.quill-image figcaption {
 		display: block;
 		width: 100%;
-		height: 2.4rem;
+		height: 24px;
 		text-align: center;
-		line-height: 2.4rem;
-		margin-top: 0.4rem;
+		line-height: 24px;
+		margin-top: 4px;
 		outline: none;
 		cursor: text;
 		color: rgba(0,0,0,.68);
+		font-size: 13px;
 	}
 
 	.quill-image figcaption:empty { display: none; }
@@ -133,8 +164,8 @@ const STYLES = `
 	}
 
 	.quill-image .quill-image__format label {
-		width: 3.2rem;
-		height: 3.2rem;
+		width: 32px;
+		height: 32px;
 		display: flex;
 		cursor: pointer;
 		--webkit-appearance: none;
@@ -159,12 +190,37 @@ const STYLES = `
 	.quill-image .quill-image__format input:checked + label {
 		color: var(--accent-color);
 	}
+	.quill-image  input.quill-image__alt {
+		position: absolute;
+    bottom: 3px;
+    right: 1px;
+    line-height: 18px;
+    padding: 0 4px;
+    border-radius: 5px;
+    background: white;
+    border: 1px solid currentColor;
+    color: rgba(0,0,0,.25);
+    font-size: 11px;
+    display: inline;
+		width: 24px;
+		transition: width .28s, color .15s, border-color .15s;
+	}
+	.quill-image  input.quill-image__alt:valid {
+		color: var(--accent-color);
+	}
+	.quill-image  input.quill-image__alt:focus {
+		width: calc(100% - 2px);
+		color: rgb(0,0,0,.85);
+	}
+
 `;
 
 function makeEmbed(quill, Quill) {
 	if (!document.getElementById('quill-image-styles')) { addStyleString('quill-image-styles', STYLES); }
 
-	let BlockEmbed = Quill.import('blots/block/embed');
+	const Delta = Quill.import('delta');
+	const BlockEmbed = Quill.import('blots/block/embed');
+
 	class ImageBlot extends BlockEmbed {
 		static create(value) {
 			let node = super.create();
@@ -184,36 +240,33 @@ function makeEmbed(quill, Quill) {
 			node.appendChild(caption);
 
 			// Quill focuses out on mousedown... Thanks Quill...
-			let pause = false;
 			caption.addEventListener('mousedown', (e) => {
 				if (document.activeElement === caption) { return; }
-				pause = true;
-				e.preventDefault();
-				e.stopPropagation();
 				ImageBlot.complexify(node);
-				caption.focus();
 			}, true);
+			caption.addEventListener('mouseup', () => node.pause = false);
 
 			caption.addEventListener('focus', (e) => {
-				var range, selection;
-				selection = window.getSelection();
-				range = document.createRange();
-				range.selectNodeContents(e.target);
-				selection.removeAllRanges();
-				selection.addRange(range);
-				pause = false;
+				selectAll(e.target);
+				node.pause = false;
 			});
+
+			// Quill futzes with focus out on mousedown... Thanks Quill...
+			node.addEventListener('mousedown', () => node.pause = true, true);
 
 			node.addEventListener('focusin', () => {
 				const active = document.activeElement;
 				if (node !== active || !node.contains(active)) { return; }
 				ImageBlot.complexify(node);
+				node.pause = false;
 			}, false);
 
 			node.addEventListener('focusout', (e) => {
 				const active = document.activeElement;
-				if (pause || node === active || node.contains(active)) { pause = false; return; }
+				if (node.pause || node === active || node.contains(active)) { node.pause = false; return; }
 				ImageBlot.simplify(node);
+				// Force a text-change trigger so consumers get the updated markup!
+				setTimeout(() => quill.updateContents(new Delta().retain(Infinity), 'user'), 10);
 			}, false);
 
 			return node;
@@ -222,12 +275,14 @@ function makeEmbed(quill, Quill) {
 		static complexify(node) {
 			if (node.querySelector('.quill-image__format')) { return; }
 			node.querySelector('figcaption').setAttribute('contenteditable', true);
-			node.appendChild(makeMenu(node, node.dataset.format || 'center'))
+			node.appendChild(makeMenu(node));
+			node.appendChild(makeAltButton(node));
 		}
 
 		static simplify(node) {
-			node.querySelector('figcaption').setAttribute('contenteditable', false);
+			node.querySelector('figcaption').removeAttribute('contenteditable');
 			Array.from(node.querySelectorAll('.quill-image__format')).forEach(e => e.remove());
+			Array.from(node.querySelectorAll('.quill-image__alt')).forEach(e => e.remove());
 		}
 
 		static value(node) {
@@ -257,6 +312,13 @@ function makeEmbed(quill, Quill) {
 function isQuillImageBlot(node) {
 	node = node.domNode || node;
 	return !!(node && node.classList && node.classList.contains('quill-image'));
+}
+
+function isInsideQuillImageBlot(node) {
+	while (node && node !== node.parentElement) {
+		if (isQuillImageBlot(node)) { return true; }
+		node = node.parentElement;
+	}
 }
 
 function getPrevQuillImageBlot(node) {
@@ -364,7 +426,27 @@ export class QuillImage {
 
 	handleKeyDown(e) {
 
-		if (!isQuillImageBlot(e.target)) { return true; }
+		// TODO: Enable basic text shortcuts anywhere inside of our plugin (stealing them back from Quill).
+		if (isInsideQuillImageBlot(e.target)) {
+			if (e.keyCode === 65 && e.metaKey) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				// TODO: Select All
+			}
+			else if (e.keyCode === 67 && e.metaKey) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				// TODO: Copy
+			}
+			else if ( e.keyCode === 86 && e.metaKey) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				// TODO: Paste
+			}
+		}
+
+		if (!isQuillImageBlot(e.target)) { return; }
+
 		// Delete
 		const scrollPos = document.scrollingElement.scrollTop;
 		if (e.keyCode === 8) {

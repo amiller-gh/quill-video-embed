@@ -33,7 +33,20 @@ var ICONS = {
 	right: '<svg style="transform: rotate(180deg)"><path d="M2 16.99V9.047c0-.112.042-.22.123-.32a.384.384 0 0 1 .32-.152h11.93c.102 0 .2.05.296.15.09.103.14.21.14.322v7.943c0 .122-.05.225-.14.31a.44.44 0 0 1-.31.13H2.44a.427.427 0 0 1-.44-.44zm5.847 3.517v-.87c0-.1.038-.194.114-.28.08-.086.17-.13.27-.13h14.22c.13 0 .23.046.32.14.09.09.14.18.14.27v.87a.42.42 0 0 1-.14.332c-.09.08-.19.13-.31.13H8.23a.34.34 0 0 1-.274-.14.545.545 0 0 1-.107-.34zm0-14.108v-.92c0-.13.038-.23.114-.32a.35.35 0 0 1 .27-.13h14.22c.13 0 .23.04.32.13s.14.19.14.31v.92c0 .09-.04.18-.14.26-.09.08-.19.13-.31.13H8.23c-.1 0-.19-.05-.267-.13a.447.447 0 0 1-.11-.27zm8.497 7.09v-.9c0-.15.048-.27.144-.37a.477.477 0 0 1 .328-.14l5.624-.01c.12 0 .23.04.32.14.093.09.14.21.14.36v.9c0 .11-.047.21-.14.32-.09.1-.2.15-.32.15l-5.625.01c-.12 0-.23-.05-.327-.15a.467.467 0 0 1-.144-.33zm0-3.58v-.86c0-.11.048-.22.144-.32.097-.1.207-.16.328-.15l5.624-.01c.12 0 .23.05.32.15.092.1.14.21.14.32v.87c0 .13-.047.24-.14.32-.09.08-.2.12-.32.12l-5.625.01a.45.45 0 0 1-.334-.13.408.408 0 0 1-.13-.32zm0 7.04v-.9c0-.15.05-.27.146-.37a.474.474 0 0 1 .327-.14l5.624-.01c.13 0 .23.04.33.14.09.09.14.21.14.36v.89c0 .11-.04.21-.13.32-.09.1-.2.15-.32.15l-5.62.01c-.12 0-.23-.05-.32-.16a.485.485 0 0 1-.14-.32z" fill-rule="evenodd"></path></svg>',
 	full: '<svg><path d="M3 17.004V9.01a.4.4 0 0 1 .145-.31.476.476 0 0 1 .328-.13h17.74c.12 0 .23.043.327.13a.4.4 0 0 1 .145.31v7.994a.404.404 0 0 1-.145.313.48.48 0 0 1-.328.13H3.472a.483.483 0 0 1-.327-.13.402.402 0 0 1-.145-.313zm2.212 3.554v-.87c0-.13.05-.243.145-.334a.472.472 0 0 1 .328-.137H19c.124 0 .23.045.322.137a.457.457 0 0 1 .138.335v.86c0 .12-.046.22-.138.31a.478.478 0 0 1-.32.13H5.684a.514.514 0 0 1-.328-.13.415.415 0 0 1-.145-.32zm0-14.246v-.84c0-.132.05-.243.145-.334A.477.477 0 0 1 5.685 5H19a.44.44 0 0 1 .322.138.455.455 0 0 1 .138.335v.84a.451.451 0 0 1-.138.334.446.446 0 0 1-.32.138H5.684a.466.466 0 0 1-.328-.138.447.447 0 0 1-.145-.335z" fill-rule="evenodd"></path></svg>'
 };
-function makeMenu(node, activeFormat) {
+
+function selectAll(el) {
+	if (el.setSelectionRange) {
+		el.setSelectionRange(0, el.value.length);
+		return;
+	}
+	var selection = window.getSelection();
+	var range = document.createRange();
+	range.selectNodeContents(el);
+	selection.removeAllRanges();
+	selection.addRange(range);
+}
+
+function makeMenu(node) {
 	var nav = document.createElement('nav');
 	nav.className = 'quill-image__format';
 	var _iteratorNormalCompletion = true;
@@ -54,14 +67,12 @@ function makeMenu(node, activeFormat) {
 
 			button.dataset.format = format;
 			label.dataset.format = format;
-
+			var activeFormat = node.dataset.format || 'center';
 			if (activeFormat === format) button.checked = true;
 			button.name = 'format';
 			nav.appendChild(button);
 			nav.appendChild(label);
 		}
-
-		// Quill focuses out on mousedown... Thanks Quill...
 	} catch (err) {
 		_didIteratorError = true;
 		_iteratorError = err;
@@ -77,11 +88,9 @@ function makeMenu(node, activeFormat) {
 		}
 	}
 
-	nav.addEventListener('mousedown', function (e) {
-		e.preventDefault();e.stopPropagation();
-	}, true);
 	nav.addEventListener('click', function (e) {
 		var srcEl = e.srcElement;
+		node.pause = true;
 		node.focus();
 		if (srcEl.dataset.format) {
 			node.dataset.format = srcEl.dataset.format;
@@ -91,13 +100,33 @@ function makeMenu(node, activeFormat) {
 	return nav;
 }
 
-var STYLES = '\n\t.quill-image {\n\t\t--accent-color: #3eb0ef;\n\t\tdisplay: flex;\n\t\tflex-flow: column;\n\t\tjustify-content: center;\n\t\talign-items: center;\n\t\toutline: none;\n\t\tcursor: pointer;\n\t\tposition: relative;\n\t}\n\t.quill-image[data-format=full] {\n\t\twidth: 100%;\n\t\tmargin: 0 0 1.2rem;\n\t}\n\t.quill-image[data-format=center] {\n\t\twidth: 100%;\n\t\tmargin: 0 0 1.2rem;\n\t}\n\t.quill-image[data-format=center] img {\n\t\twidth: auto;\n\t}\n\t.quill-image[data-format=left] {\n\t\twidth: calc(50% - 1.2rem);\n\t\tfloat: left;\n\t\tmargin: 0 1.2rem 1.2rem 0;\n\t}\n\t.quill-image[data-format=right] {\n\t\twidth: calc(50% - 1.2rem);\n\t\tfloat: right;\n\t\tmargin: 0 0 1.2rem 1.2rem;\n\t}\n\t.quill-image img {\n\t\ttransition: box-shadow .15s;\n\t\twidth: 100%;\n\t}\n\t.quill-image:hover img {\n\t\tbox-shadow: 0 0 0 1px var(--accent-color);\n\t}\n\n\t.quill-image:focus-within img {\n\t\tbox-shadow: 0 0 0 2px var(--accent-color);\n\t}\n\n\t.quill-image figcaption {\n\t\tdisplay: block;\n\t\twidth: 100%;\n\t\theight: 2.4rem;\n\t\ttext-align: center;\n\t\tline-height: 2.4rem;\n\t\tmargin-top: 0.4rem;\n\t\toutline: none;\n\t\tcursor: text;\n\t\tcolor: rgba(0,0,0,.68);\n\t}\n\n\t.quill-image figcaption:empty { display: none; }\n\t.quill-image:focus-within figcaption:empty { display: block; }\n\t.quill-image:focus-within figcaption:focus-within::before { display: none; }\n\t.quill-image:focus-within figcaption:empty::before {\n\t\tcontent: "Type caption for image (optional)";\n\t\tcolor: rgba(0,0,0,.33);\n\t\tpointer-events: none;\n\t}\n\n\t.quill-image .quill-image__format {\n\t\tposition: absolute;\n\t\tbottom: 36px;\n\t\tleft: 50%;\n\t\ttransform: translateX(-50%);\n\t\tdisplay: flex;\n\t\tbackground-color: rgba(0,0,0,.66);\n\t\tborder-radius: 4px;\n\t}\n\n\t.quill-image .quill-image__format input {\n\t\t--webkit-appearance: none;\n\t\tappearance: none;\n\t\twidth: 1px;\n\t\theight: 1px;\n\t\tborder: none;\n\t\tbackground: transparent;\n\t\tpadding: 0;\n\t\tmargin: 0;\n\t\topacity: 0.00001;\n\t}\n\n\t.quill-image .quill-image__format label {\n\t\twidth: 3.2rem;\n\t\theight: 3.2rem;\n\t\tdisplay: flex;\n\t\tcursor: pointer;\n\t\t--webkit-appearance: none;\n\t\tappearance: none;\n\t\tborder: none;\n\t\tcolor: white;\n\t\tjustify-content: center;\n\t\talign-items: center;\n\t\tmargin: 0;\n    padding: 0;\n\t}\n\t.quill-image .quill-image__format label::before,\n\t.quill-image .quill-image__format label::after {\n\t\tdisplay: none !important;\n\t}\n\t.quill-image .quill-image__format label svg {\n\t\tfill: currentColor;\n\t\tpointer-events: none;\n\t\twidth: 26px;\n\t\theight: 26px;\n\t}\n\t.quill-image .quill-image__format input:checked + label {\n\t\tcolor: var(--accent-color);\n\t}\n';
+function makeAltButton(node) {
+	var altButton = document.createElement('input');
+	altButton.className = 'quill-image__alt';
+	altButton.placeholder = 'Alt text for image (optional)';
+	altButton.required = true;
+	altButton.value = node.querySelector('img').alt ? "Alt" : "";
+	altButton.addEventListener('input', function (e) {
+		return node.querySelector('img').alt = altButton.value || "";
+	});
+	altButton.addEventListener('blur', function (e) {
+		return altButton.value = node.querySelector('img').alt ? "Alt" : "";
+	});
+	altButton.addEventListener('focus', function (e) {
+		altButton.value = node.querySelector('img').alt || "";
+		selectAll(altButton);
+	});
+	return altButton;
+}
+
+var STYLES = '\n\t.quill-image {\n\t\t--accent-color: #3eb0ef;\n\t\tdisplay: flex;\n\t\tflex-flow: column;\n\t\tjustify-content: center;\n\t\talign-items: center;\n\t\toutline: none;\n\t\tcursor: pointer;\n\t\tposition: relative;\n\t}\n\t.quill-image[data-format=full] {\n\t\twidth: 100%;\n\t\tmargin: 0 0 12px;\n\t}\n\t.quill-image[data-format=center] {\n\t\twidth: 100%;\n\t\tmargin: 0 auto 12px;\n\t\twidth: fit-content;\n\t}\n\t.quill-image[data-format=center] img {\n\t\twidth: auto;\n\t}\n\t.quill-image[data-format=left] {\n\t\twidth: calc(50% - 12px);\n\t\tfloat: left;\n\t\tmargin: 0 12px 12px 0;\n\t}\n\t.quill-image[data-format=right] {\n\t\twidth: calc(50% - 12px);\n\t\tfloat: right;\n\t\tmargin: 0 0 12px 12px;\n\t}\n\t.quill-image img {\n\t\tbox-sizing: border-box;\n\t\tborder: 1px solid transparent;\n\t\ttransition: box-shadow .15s;\n\t\twidth: 100%;\n\t}\n\t.quill-image:hover img {\n\t\tbox-shadow: 0 0 0 1px var(--accent-color);\n\t}\n\n\t.quill-image:focus-within img {\n\t\tbox-shadow: 0 0 0 2px var(--accent-color);\n\t}\n\n\t.quill-image figcaption {\n\t\tdisplay: block;\n\t\twidth: 100%;\n\t\theight: 24px;\n\t\ttext-align: center;\n\t\tline-height: 24px;\n\t\tmargin-top: 4px;\n\t\toutline: none;\n\t\tcursor: text;\n\t\tcolor: rgba(0,0,0,.68);\n\t\tfont-size: 13px;\n\t}\n\n\t.quill-image figcaption:empty { display: none; }\n\t.quill-image:focus-within figcaption:empty { display: block; }\n\t.quill-image:focus-within figcaption:focus-within::before { display: none; }\n\t.quill-image:focus-within figcaption:empty::before {\n\t\tcontent: "Type caption for image (optional)";\n\t\tcolor: rgba(0,0,0,.33);\n\t\tpointer-events: none;\n\t}\n\n\t.quill-image .quill-image__format {\n\t\tposition: absolute;\n\t\tbottom: 36px;\n\t\tleft: 50%;\n\t\ttransform: translateX(-50%);\n\t\tdisplay: flex;\n\t\tbackground-color: rgba(0,0,0,.66);\n\t\tborder-radius: 4px;\n\t}\n\n\t.quill-image .quill-image__format input {\n\t\t--webkit-appearance: none;\n\t\tappearance: none;\n\t\twidth: 1px;\n\t\theight: 1px;\n\t\tborder: none;\n\t\tbackground: transparent;\n\t\tpadding: 0;\n\t\tmargin: 0;\n\t\topacity: 0.00001;\n\t}\n\n\t.quill-image .quill-image__format label {\n\t\twidth: 32px;\n\t\theight: 32px;\n\t\tdisplay: flex;\n\t\tcursor: pointer;\n\t\t--webkit-appearance: none;\n\t\tappearance: none;\n\t\tborder: none;\n\t\tcolor: white;\n\t\tjustify-content: center;\n\t\talign-items: center;\n\t\tmargin: 0;\n    padding: 0;\n\t}\n\t.quill-image .quill-image__format label::before,\n\t.quill-image .quill-image__format label::after {\n\t\tdisplay: none !important;\n\t}\n\t.quill-image .quill-image__format label svg {\n\t\tfill: currentColor;\n\t\tpointer-events: none;\n\t\twidth: 26px;\n\t\theight: 26px;\n\t}\n\t.quill-image .quill-image__format input:checked + label {\n\t\tcolor: var(--accent-color);\n\t}\n\t.quill-image  input.quill-image__alt {\n\t\tposition: absolute;\n    bottom: 3px;\n    right: 1px;\n    line-height: 18px;\n    padding: 0 4px;\n    border-radius: 5px;\n    background: white;\n    border: 1px solid currentColor;\n    color: rgba(0,0,0,.25);\n    font-size: 11px;\n    display: inline;\n\t\twidth: 24px;\n\t\ttransition: width .28s, color .15s, border-color .15s;\n\t}\n\t.quill-image  input.quill-image__alt:valid {\n\t\tcolor: var(--accent-color);\n\t}\n\t.quill-image  input.quill-image__alt:focus {\n\t\twidth: calc(100% - 2px);\n\t\tcolor: rgb(0,0,0,.85);\n\t}\n\n';
 
 function makeEmbed(quill, Quill) {
 	if (!document.getElementById('quill-image-styles')) {
 		addStyleString('quill-image-styles', STYLES);
 	}
 
+	var Delta = Quill.import('delta');
 	var BlockEmbed = Quill.import('blots/block/embed');
 
 	var ImageBlot = function (_BlockEmbed) {
@@ -123,27 +152,25 @@ function makeEmbed(quill, Quill) {
 				node.appendChild(caption);
 
 				// Quill focuses out on mousedown... Thanks Quill...
-				var pause = false;
 				caption.addEventListener('mousedown', function (e) {
 					if (document.activeElement === caption) {
 						return;
 					}
-					pause = true;
-					e.preventDefault();
-					e.stopPropagation();
 					ImageBlot.complexify(node);
-					caption.focus();
 				}, true);
+				caption.addEventListener('mouseup', function () {
+					return node.pause = false;
+				});
 
 				caption.addEventListener('focus', function (e) {
-					var range, selection;
-					selection = window.getSelection();
-					range = document.createRange();
-					range.selectNodeContents(e.target);
-					selection.removeAllRanges();
-					selection.addRange(range);
-					pause = false;
+					selectAll(e.target);
+					node.pause = false;
 				});
+
+				// Quill futzes with focus out on mousedown... Thanks Quill...
+				node.addEventListener('mousedown', function () {
+					return node.pause = true;
+				}, true);
 
 				node.addEventListener('focusin', function () {
 					var active = document.activeElement;
@@ -151,15 +178,19 @@ function makeEmbed(quill, Quill) {
 						return;
 					}
 					ImageBlot.complexify(node);
+					node.pause = false;
 				}, false);
 
 				node.addEventListener('focusout', function (e) {
 					var active = document.activeElement;
-					console.log(active, node.contains(active), e);
-					if (pause || node === active || node.contains(active)) {
-						pause = false;return;
+					if (node.pause || node === active || node.contains(active)) {
+						node.pause = false;return;
 					}
 					ImageBlot.simplify(node);
+					// Force a text-change trigger so consumers get the updated markup!
+					setTimeout(function () {
+						return quill.updateContents(new Delta().retain(Infinity), 'user');
+					}, 10);
 				}, false);
 
 				return node;
@@ -171,13 +202,17 @@ function makeEmbed(quill, Quill) {
 					return;
 				}
 				node.querySelector('figcaption').setAttribute('contenteditable', true);
-				node.appendChild(makeMenu(node, node.dataset.format || 'center'));
+				node.appendChild(makeMenu(node));
+				node.appendChild(makeAltButton(node));
 			}
 		}, {
 			key: 'simplify',
 			value: function simplify(node) {
-				node.querySelector('figcaption').setAttribute('contenteditable', false);
+				node.querySelector('figcaption').removeAttribute('contenteditable');
 				Array.from(node.querySelectorAll('.quill-image__format')).forEach(function (e) {
+					return e.remove();
+				});
+				Array.from(node.querySelectorAll('.quill-image__alt')).forEach(function (e) {
 					return e.remove();
 				});
 			}
@@ -223,6 +258,15 @@ function makeEmbed(quill, Quill) {
 function isQuillImageBlot(node) {
 	node = node.domNode || node;
 	return !!(node && node.classList && node.classList.contains('quill-image'));
+}
+
+function isInsideQuillImageBlot(node) {
+	while (node && node !== node.parentElement) {
+		if (isQuillImageBlot(node)) {
+			return true;
+		}
+		node = node.parentElement;
+	}
 }
 
 function getPrevQuillImageBlot(node) {
@@ -344,9 +388,27 @@ var QuillImage = exports.QuillImage = function () {
 		key: 'handleKeyDown',
 		value: function handleKeyDown(e) {
 
-			if (!isQuillImageBlot(e.target)) {
-				return true;
+			// TODO: Enable basic text shortcuts anywhere inside of our plugin (stealing them back from Quill).
+			if (isInsideQuillImageBlot(e.target)) {
+				if (e.keyCode === 65 && e.metaKey) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					// TODO: Select All
+				} else if (e.keyCode === 67 && e.metaKey) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					// TODO: Copy
+				} else if (e.keyCode === 86 && e.metaKey) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					// TODO: Paste
+				}
 			}
+
+			if (!isQuillImageBlot(e.target)) {
+				return;
+			}
+
 			// Delete
 			var scrollPos = document.scrollingElement.scrollTop;
 			if (e.keyCode === 8) {
