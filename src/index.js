@@ -557,8 +557,8 @@ export class QuillImage {
 		}, 'user');
 		quill.formatText(index, 1, 'image');
 		if (typeof this.options.handler === 'function') {
-			const url = await this.options.handler(this.quill, dataUrl, type);
-			document.getElementById(id).querySelector('img').setAttribute('src', url);
+			const url = await this.options.handler(this.quill, imageId, dataUrl, type);
+			document.getElementById(imageId).querySelector('img').setAttribute('src', url);
 		}
 	}
 }

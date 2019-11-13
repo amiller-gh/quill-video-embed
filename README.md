@@ -32,10 +32,11 @@ const quill = new Quill('#editor-container', {
 /**
 * Do something to our dropped or pasted image
 * @param.quill - the quill instance
+* @param.guid - a unique guid for this image, if required
 * @param.imageDataUrl - image's base64 url
 * @param.type - image's mime type
 */
-async function handler(quill, dataUrl, type) {
+async function handler(quill, guid, dataUrl, type) {
   // give a default mime type if the type was null
   if (!type) type = 'image/png';
 
@@ -43,7 +44,7 @@ async function handler(quill, dataUrl, type) {
   const blob = await fetch(b64Image).then(res => res.blob());
 
   // Generate a filename
-  const filename = `veryUniqueFilename.${type.match(/^image\/(\w+)$/i)[1]}`;
+  const filename = `${guid}.${type.match(/^image\/(\w+)$/i)[1]}`;
 
   // Generate a form data
   const formData = new FormData();

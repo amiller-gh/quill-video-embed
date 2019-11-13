@@ -523,8 +523,8 @@ var QuillImage = exports.QuillImage = function () {
 			}, 'user');
 			quill.formatText(index, 1, 'image');
 			if (typeof this.options.handler === 'function') {
-				var url = await this.options.handler(this.quill, dataUrl, type);
-				document.getElementById(id).querySelector('img').setAttribute('src', url);
+				var url = await this.options.handler(this.quill, imageId, dataUrl, type);
+				document.getElementById(imageId).querySelector('img').setAttribute('src', url);
 			}
 		}
 	}]);
