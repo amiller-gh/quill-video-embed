@@ -121,15 +121,16 @@ const STYLES = `
 
 	.quill-image figcaption {
 		display: block;
-		width: 100%;
-		height: 24px;
+		width: calc(100% - 56px);
 		text-align: center;
-		line-height: 24px;
-		margin-top: 4px;
+		line-height: 18px;
+		margin: 4px 28px 0;
+		padding: 4px 0 0;
 		outline: none;
 		cursor: text;
 		color: rgba(0,0,0,.68);
 		font-size: 13px;
+		transition: opacity .28s;
 	}
 
 	.quill-image figcaption:empty { display: none; }
@@ -142,10 +143,10 @@ const STYLES = `
 	}
 
 	.quill-image .quill-image__format {
-		position: absolute;
-		bottom: 36px;
-		left: 50%;
-		transform: translateX(-50%);
+		position: relative;
+		height: 32px;
+		bottom: 42px;
+		margin-bottom: -32px;
 		display: flex;
 		background-color: rgba(0,0,0,.66);
 		border-radius: 4px;
@@ -191,10 +192,14 @@ const STYLES = `
 		color: var(--accent-color);
 	}
 	.quill-image  input.quill-image__alt {
-		position: absolute;
-    bottom: 3px;
-    right: 1px;
-    line-height: 18px;
+		position: relative;
+		height: 20px;
+		box-sizing: border-box;
+		margin-bottom: -20px;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    line-height: 20px;
     padding: 0 4px;
     border-radius: 5px;
     background: white;
@@ -204,13 +209,20 @@ const STYLES = `
     display: inline;
 		width: 24px;
 		transition: width .28s, color .15s, border-color .15s;
+		z-index: 1;
 	}
+
 	.quill-image  input.quill-image__alt:valid {
 		color: var(--accent-color);
 	}
+
 	.quill-image  input.quill-image__alt:focus {
 		width: calc(100% - 2px);
 		color: rgb(0,0,0,.85);
+	}
+
+	.quill-image  input.quill-image__alt:focus + figcaption {
+		opacity: 0;
 	}
 
 `;
@@ -274,9 +286,10 @@ function makeEmbed(quill, Quill) {
 
 		static complexify(node) {
 			if (node.querySelector('.quill-image__format')) { return; }
-			node.querySelector('figcaption').setAttribute('contenteditable', true);
-			node.appendChild(makeMenu(node));
-			node.appendChild(makeAltButton(node));
+			const caption = node.querySelector('figcaption');
+			caption.setAttribute('contenteditable', true);
+			node.insertBefore(makeMenu(node), caption);
+			node.insertBefore(makeAltButton(node), caption);
 		}
 
 		static simplify(node) {
