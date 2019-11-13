@@ -110,14 +110,13 @@ function makeEmbed(quill, Quill) {
 				node.id = value.imageId;
 				node.setAttribute('contenteditable', false);
 				node.setAttribute('tabIndex', -1);
-				node.dataset.format = value.format || 'full';
+				node.dataset.format = value.format || 'center';
 				var img = document.createElement('img');
-				img.setAttribute('alt', value.alt);
+				img.setAttribute('alt', value.alt || '');
 				img.setAttribute('src', value.src);
 
 				var caption = document.createElement('figcaption');
-				caption.innerText = value.caption;
-				caption.innerText = value.caption;
+				caption.innerText = value.caption || '';
 				caption.setAttribute('tabIndex', -1);
 
 				node.appendChild(img);
@@ -187,10 +186,10 @@ function makeEmbed(quill, Quill) {
 			value: function value(node) {
 				return {
 					imageId: node.id,
-					alt: node.querySelector('img').getAttribute('alt'),
+					alt: node.querySelector('img').getAttribute('alt') || undefined,
 					src: node.querySelector('img').getAttribute('src'),
-					caption: node.querySelector('figcaption').innerText,
-					format: node.dataset.format
+					caption: node.querySelector('figcaption').innerText || undefined,
+					format: node.dataset.format || 'center'
 				};
 			}
 		}]);
@@ -455,7 +454,9 @@ var QuillImage = exports.QuillImage = function () {
 			quill.insertEmbed(index, 'image', {
 				imageId: imageId,
 				src: dataUrl,
-				caption: 'Cool!'
+				alt: undefined,
+				caption: undefined,
+				format: 'center'
 			}, 'user');
 			quill.formatText(index, 1, 'image');
 			if (typeof this.options.handler === 'function') {
