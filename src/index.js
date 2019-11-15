@@ -94,6 +94,7 @@ const STYLES = `
 	}
 	.quill-image[data-format=center] img {
 		width: auto;
+		max-width: 75%;
 	}
 	.quill-image[data-format=left] {
 		width: calc(50% - 12px);
@@ -358,7 +359,7 @@ export const QuillImageBindings = {
 			const node = blot.domNode;
 			if (isQuillImageBlot(node)) { return true; }
 			const prevQuillImageBlock = getPrevQuillImageBlot(blot);
-			if (prevQuillImageBlock) {
+			if (prevQuillImageBlock && !blot.value()) {
 				this.quill.setSelection(this.quill.getIndex(prevQuillImageBlock), 0);
 				prevQuillImageBlock.domNode.focus();
 				return false;
