@@ -202,14 +202,15 @@ function makeEmbed(quill, Quill) {
 					return;
 				}
 				var caption = node.querySelector('figcaption');
-				caption.setAttribute('contenteditable', true);
+				caption && caption.setAttribute('contenteditable', true);
 				node.insertBefore(makeMenu(node), caption);
 				node.insertBefore(makeAltButton(node), caption);
 			}
 		}, {
 			key: 'simplify',
 			value: function simplify(node) {
-				node.querySelector('figcaption').removeAttribute('contenteditable');
+				var caption = node.querySelector('figcaption');
+				caption && caption.removeAttribute('contenteditable');
 				Array.from(node.querySelectorAll('.quill-image__format')).forEach(function (e) {
 					return e.remove();
 				});
@@ -224,7 +225,7 @@ function makeEmbed(quill, Quill) {
 					imageId: node.id,
 					alt: node.querySelector('img').getAttribute('alt') || undefined,
 					src: node.querySelector('img').getAttribute('src'),
-					caption: node.querySelector('figcaption').innerText || undefined,
+					caption: node.querySelector('figcaption') ? node.querySelector('figcaption').innerText || undefined : undefined,
 					format: node.dataset.format || 'center'
 				};
 			}
