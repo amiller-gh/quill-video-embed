@@ -1,35 +1,28 @@
 Arguments: 
-  /Users/adammiller1 1/.nvm/versions/node/v11.15.0/bin/node /Users/adammiller1 1/.nvm/versions/node/v11.15.0/bin/yarn publish
+  /Users/adammiller/.nvm/versions/node/v12.14.0/bin/node /Users/adammiller/.nvm/versions/node/v12.14.0/bin/yarn
 
 PATH: 
-  /Users/adammiller1 1/.nvm/versions/node/v11.15.0/bin:/bin/aws/beanstalk/eb/macosx/python2.7/eb:/Library/Frameworks/Python.framework/Versions/3.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+  /Users/adammiller/.nvm/versions/node/v12.14.0/bin:/bin/aws/beanstalk/eb/macosx/python2.7/eb:/Library/Frameworks/Python.framework/Versions/3.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
 Yarn version: 
   1.21.1
 
 Node version: 
-  11.15.0
+  12.14.0
 
 Platform: 
   darwin x64
 
 Trace: 
-  Error: canceled
-      at Interface.<anonymous> (/Users/adammiller1 1/.nvm/versions/node/v11.15.0/lib/node_modules/yarn/lib/cli.js:136925:13)
-      at Interface.emit (events.js:193:13)
-      at Interface._ttyWrite (readline.js:826:16)
-      at ReadStream.onkeypress (readline.js:183:10)
-      at ReadStream.emit (events.js:193:13)
-      at emitKeys (internal/readline.js:424:14)
-      at emitKeys.next (<anonymous>)
-      at ReadStream.onData (readline.js:1097:36)
-      at ReadStream.emit (events.js:193:13)
-      at addChunk (_stream_readable.js:295:12)
+  Error: https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001008.tgz: ETIMEDOUT
+      at Timeout._onTimeout (/Users/adammiller/.nvm/versions/node/v12.14.0/lib/node_modules/yarn/lib/cli.js:141325:19)
+      at listOnTimeout (internal/timers.js:531:17)
+      at processTimers (internal/timers.js:475:7)
 
 npm manifest: 
   {
     "name": "quill-image",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "A quill editor module for drop and paste image, with a callback hook before insert image into the editor",
     "main": "dist/index.js",
     "scripts": {
