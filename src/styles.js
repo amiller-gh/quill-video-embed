@@ -50,7 +50,7 @@ export const STYLES = `
   box-shadow: 0 0 0 2px var(--accent-color);
 }
 
-.quill-image figcaption {
+.quill-image figcaption, textarea.quill-image__caption-edit {
   display: block;
   width: calc(100% - 56px);
   text-align: center;
@@ -58,12 +58,23 @@ export const STYLES = `
   margin: 4px 28px 0;
   padding: 4px 0 0;
   outline: none;
-  cursor: text;
   color: rgba(0,0,0,.68);
   font-size: 13px;
   transition: opacity .28s;
   position: relative;
   z-index: 2;
+}
+
+textarea.quill-image__caption-edit {
+  position: absolute;
+  padding: 4px 0 0 !important;
+  resize: none !important;
+  border: none !important;
+  top: calc(100% - 4px);
+  left: 0;
+  transform: translateY(-100%);
+  background: transparent;
+  z-index: 3;
 }
 
 .quill-image figcaption:empty { display: none; }
@@ -81,7 +92,7 @@ export const STYLES = `
   bottom: 42px;
   margin-bottom: -32px;
   display: flex;
-  background-color: rgba(0,0,0,.66);
+  background-color: rgba(0,0,0,.75);
   border-radius: 4px;
   z-index: 2;
 }
@@ -143,7 +154,7 @@ export const STYLES = `
   display: inline;
   width: 24px;
   transition: width .28s, color .15s, border-color .15s;
-  z-index: 3;
+  z-index: 4;
 }
 
 .quill-image  input.quill-image__alt:valid {

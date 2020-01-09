@@ -79,6 +79,26 @@ function makeAltButton(node) {
 	return altButton;
 }
 
+function makeCaptionEdit(node){
+	const captionInput = document.createElement('textarea');
+	captionInput.className = 'quill-image__caption-edit';
+	captionInput.placeholder = 'Type caption for image (optional)';
+	captionInput.value = node.querySelector('figcaption').innerText.trim();
+	captionInput.style.height = node.querySelector('figcaption').getBoundingClientRect().height + 'px';
+
+	captionInput.addEventListener('input', e => {
+		const el = node.querySelector('figcaption');
+		el.innerText = e.target.value + '\n';
+		captionInput.style.height = el.getBoundingClientRect().height + 'px';
+	});
+
+	captionInput.addEventListener('focus', e => { selectAll(e.target); });
+	captionInput.addEventListener('keydown', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	captionInput.addEventListener('keyup', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	captionInput.addEventListener('keypress', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+
+	return captionInput;
+}
 
 function makeEmbed(Quill, options) {
 	if (!document.getElementById('quill-image-styles')) { addStyleString('quill-image-styles', STYLES); }
@@ -126,7 +146,7 @@ function makeEmbed(Quill, options) {
 				}
 			});
 
-			caption.addEventListener('focus', (e) => { selectAll(e.target); }, true);
+			caption.addEventListener('focus', (e) => { setTimeout(() => e.target.parentElement.querySelector('textarea').focus(), 100) }, false);
 
 			// Quill focuses out on mousedown... Thanks Quill...
 			node.addEventListener('mousedown', (evt) => evt.stopPropagation(), false);
@@ -184,9 +204,9 @@ function makeEmbed(Quill, options) {
 			console.log('complexify', !!node.querySelector('.quill-image__format'), document.activeElement);
 			if (!!node.querySelector('.quill-image__format')) { return; }
 			const caption = node.querySelector('figcaption');
-			caption && caption.setAttribute('contenteditable', true);
 			node.insertBefore(makeMenu(node), caption);
 			node.insertBefore(makeAltButton(node), caption);
+			node.insertBefore(makeCaptionEdit(node), caption);
 			node.appendChild(node._input);
 		}
 
@@ -194,9 +214,10 @@ function makeEmbed(Quill, options) {
 			console.log('simplify', !node.querySelector('.quill-image__format'), document.activeElement);
 			if (!node.querySelector('.quill-image__format')) { return; }
 			const caption = node.querySelector('figcaption');
-			caption && caption.removeAttribute('contenteditable');
+			caption.innerText = caption.innerText.trim();
 			Array.from(node.querySelectorAll('.quill-image__format')).forEach(e => e.remove());
 			Array.from(node.querySelectorAll('.quill-image__alt')).forEach(e => e.remove());
+			Array.from(node.querySelectorAll('.quill-image__caption-edit')).forEach(e => e.remove());
 			node.removeChild(node._input);
 			setTimeout(() => {
 				node.dispatchEvent(new Event(CUSTOM_EVENT_NAME, { "bubbles": true }));
@@ -246,9 +267,9 @@ class QuillImage {
 
     const prev = Quill.prototype.setContents;
     Quill.prototype.setContents = function () {
-      const quill = this;
-			quill.root.addEventListener('drop', self.handleDrop.bind(self, quill), false);
-			quill.root.addEventListener('paste', self.handlePaste.bind(self, quill), false);
+			const quill = this;
+			quill.root.addEventListener('drop', self.handleDrop.bind(self, quill), true);
+			quill.root.addEventListener('paste', self.handlePaste.bind(self, quill), true);
 			quill.root.addEventListener('keydown', self.handleKeyDown.bind(self, quill), true);
 
 			// Force a text-change event trigger so consumers get the updated markup!
@@ -339,8 +360,7 @@ class QuillImage {
 		document.scrollingElement.scrollTop = scrollPos;
 	}
 
-	/* handle image drop event
-	*/
+	/* handle image drop event */
 	handleDrop (quill, e) {
 		e.preventDefault()
 		if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
@@ -355,16 +375,15 @@ class QuillImage {
 		}
 	}
 
-	/* handle image paste event
-	*/
+	/* handle image paste event, steal back from Quill */
 	handlePaste (quill, e) {
+		e.stopImmediatePropagation();
 		if (e.clipboardData && e.clipboardData.items && e.clipboardData.items.length) {
 			this.readFiles(e.clipboardData.items, this.insert.bind(this, quill), e)
 		}
 	}
 
-	/* read the files
-	*/
+	/* read the files */
 	readFiles (files, callback, e) {
 		[].forEach.call(files, file => {
 			var type = file.type
