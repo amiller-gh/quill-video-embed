@@ -1,10 +1,11 @@
 {
   "name": "quill-image",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A quill editor module for drop and paste image, with a callback hook before insert image into the editor",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rm -rf dist && mkdir dist && babel ./src/index.js --presets=es2015 > dist/index.js"
+    "build": "rm -rf dist && mkdir dist && babel src --presets=es2015 --out-dir dist",
+    "watch": "watch 'yarn run build' './src' --wait=0.3"
   },
   "keywords": [
     "quill",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "babel-cli": "^6.24.0",
     "babel-preset-env": "^1.2.2",
-    "babel-preset-es2015": "^6.24.0"
+    "babel-preset-es2015": "^6.24.0",
+    "watch": "^1.0.2"
   }
 }

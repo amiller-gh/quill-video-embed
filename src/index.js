@@ -1,11 +1,19 @@
+import { isQuillImageBlot, isInsideQuillImageBlot } from './utils';
+import { QuillImageBindings } from './bindings';
+import { STYLES } from './styles';
+
 const guid = () => ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c  => (c ^ window.crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 function addStyleString(id, str) {
 	var node = document.createElement('style');
 	node.id = id;
 	node.innerHTML = str;
-	document.body.appendChild(node);
+  if (document.readyState === 'loading') {
+    return document.addEventListener('DOMContentLoaded', () => document.body.appendChild(node));
+  }
+  document.body.appendChild(node);
 }
 
+const CUSTOM_EVENT_NAME = guid('quill-image-event');
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const FORMATS = [ 'left', 'center', 'right', 'full' ];
 const ICONS = {
@@ -13,7 +21,6 @@ const ICONS = {
 	center: '<svg><path d="M5 20.558v-.9c0-.122.04-.226.122-.312a.404.404 0 0 1 .305-.13h13.347a.45.45 0 0 1 .32.13c.092.086.138.19.138.312v.9a.412.412 0 0 1-.138.313.435.435 0 0 1-.32.13H5.427a.39.39 0 0 1-.305-.13.432.432 0 0 1-.122-.31zm0-3.554V9.01c0-.12.04-.225.122-.31a.4.4 0 0 1 .305-.13h13.347c.122 0 .23.043.32.13.092.085.138.19.138.31v7.994a.462.462 0 0 1-.138.328.424.424 0 0 1-.32.145H5.427a.382.382 0 0 1-.305-.145.501.501 0 0 1-.122-.328zM5 6.342v-.87c0-.12.04-.23.122-.327A.382.382 0 0 1 5.427 5h13.347c.122 0 .23.048.32.145a.462.462 0 0 1 .138.328v.87c0 .12-.046.225-.138.31a.447.447 0 0 1-.32.13H5.427a.4.4 0 0 1-.305-.13.44.44 0 0 1-.122-.31z" fill-rule="evenodd"></path></svg>',
 	right: '<svg style="transform: rotate(180deg)"><path d="M2 16.99V9.047c0-.112.042-.22.123-.32a.384.384 0 0 1 .32-.152h11.93c.102 0 .2.05.296.15.09.103.14.21.14.322v7.943c0 .122-.05.225-.14.31a.44.44 0 0 1-.31.13H2.44a.427.427 0 0 1-.44-.44zm5.847 3.517v-.87c0-.1.038-.194.114-.28.08-.086.17-.13.27-.13h14.22c.13 0 .23.046.32.14.09.09.14.18.14.27v.87a.42.42 0 0 1-.14.332c-.09.08-.19.13-.31.13H8.23a.34.34 0 0 1-.274-.14.545.545 0 0 1-.107-.34zm0-14.108v-.92c0-.13.038-.23.114-.32a.35.35 0 0 1 .27-.13h14.22c.13 0 .23.04.32.13s.14.19.14.31v.92c0 .09-.04.18-.14.26-.09.08-.19.13-.31.13H8.23c-.1 0-.19-.05-.267-.13a.447.447 0 0 1-.11-.27zm8.497 7.09v-.9c0-.15.048-.27.144-.37a.477.477 0 0 1 .328-.14l5.624-.01c.12 0 .23.04.32.14.093.09.14.21.14.36v.9c0 .11-.047.21-.14.32-.09.1-.2.15-.32.15l-5.625.01c-.12 0-.23-.05-.327-.15a.467.467 0 0 1-.144-.33zm0-3.58v-.86c0-.11.048-.22.144-.32.097-.1.207-.16.328-.15l5.624-.01c.12 0 .23.05.32.15.092.1.14.21.14.32v.87c0 .13-.047.24-.14.32-.09.08-.2.12-.32.12l-5.625.01a.45.45 0 0 1-.334-.13.408.408 0 0 1-.13-.32zm0 7.04v-.9c0-.15.05-.27.146-.37a.474.474 0 0 1 .327-.14l5.624-.01c.13 0 .23.04.33.14.09.09.14.21.14.36v.89c0 .11-.04.21-.13.32-.09.1-.2.15-.32.15l-5.62.01c-.12 0-.23-.05-.32-.16a.485.485 0 0 1-.14-.32z" fill-rule="evenodd"></path></svg>',
 	full: '<svg><path d="M3 17.004V9.01a.4.4 0 0 1 .145-.31.476.476 0 0 1 .328-.13h17.74c.12 0 .23.043.327.13a.4.4 0 0 1 .145.31v7.994a.404.404 0 0 1-.145.313.48.48 0 0 1-.328.13H3.472a.483.483 0 0 1-.327-.13.402.402 0 0 1-.145-.313zm2.212 3.554v-.87c0-.13.05-.243.145-.334a.472.472 0 0 1 .328-.137H19c.124 0 .23.045.322.137a.457.457 0 0 1 .138.335v.86c0 .12-.046.22-.138.31a.478.478 0 0 1-.32.13H5.684a.514.514 0 0 1-.328-.13.415.415 0 0 1-.145-.32zm0-14.246v-.84c0-.132.05-.243.145-.334A.477.477 0 0 1 5.685 5H19a.44.44 0 0 1 .322.138.455.455 0 0 1 .138.335v.84a.451.451 0 0 1-.138.334.446.446 0 0 1-.32.138H5.684a.466.466 0 0 1-.328-.138.447.447 0 0 1-.145-.335z" fill-rule="evenodd"></path></svg>',
-	upload: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#dae3eb" stroke="#F5F9FC" stroke-width="8" d="M398.1,233.2c0-1.2,0.2-2.4,0.2-3.6c0-65-51.8-117.6-115.7-117.6c-46.1,0-85.7,27.4-104.3,67c-8.1-4.1-17.2-6.5-26.8-6.5c-29.5,0-54.1,21.9-58.8,50.5C57.3,235.2,32,269.1,32,309c0,50.2,40.1,91,89.5,91H224v-80l-48.2,0l80.2-83.7l80.2,83.6l-48.2,0v80h110.3c45.2,0,81.7-37.5,81.7-83.4C480,270.6,443.3,233.3,398.1,233.2z"/></svg>',
 }
 
 function selectAll(el) {
@@ -72,216 +79,10 @@ function makeAltButton(node) {
 	return altButton;
 }
 
-const STYLES = `
-	.quill-image {
-		--accent-color: #3eb0ef;
-		display: flex;
-		flex-flow: column;
-		justify-content: center;
-		align-items: center;
-		outline: none;
-		cursor: pointer;
-		position: relative;
-	}
-	.quill-image[data-format=full] {
-		width: 100%;
-		margin: 0 0 12px;
-	}
-	.quill-image[data-format=center] {
-		max-width: 50%;
-		margin: 0 auto 12px;
-		width: 100%;
-		width: fit-content;
-	}
-	.quill-image[data-format=center] img {
-		width: auto;
-		max-width: 75%;
-	}
-	.quill-image[data-format=left] {
-		width: calc(50% - 12px);
-		float: left;
-		margin: 0 12px 12px 0;
-	}
-	.quill-image[data-format=right] {
-		width: calc(50% - 12px);
-		float: right;
-		margin: 0 0 12px 12px;
-	}
-	.quill-image img {
-		box-sizing: border-box;
-		border: 1px solid transparent;
-		transition: box-shadow .15s;
-		width: 100%;
-	}
-	.quill-image:hover img {
-		box-shadow: 0 0 0 1px var(--accent-color);
-	}
 
-	.quill-image:focus-within img {
-		box-shadow: 0 0 0 2px var(--accent-color);
-	}
-
-	.quill-image figcaption {
-		display: block;
-		width: calc(100% - 56px);
-		text-align: center;
-		line-height: 18px;
-		margin: 4px 28px 0;
-		padding: 4px 0 0;
-		outline: none;
-		cursor: text;
-		color: rgba(0,0,0,.68);
-		font-size: 13px;
-		transition: opacity .28s;
-		position: relative;
-		z-index: 2;
-	}
-
-	.quill-image figcaption:empty { display: none; }
-	.quill-image:focus-within figcaption:empty { display: block; }
-	.quill-image:focus-within figcaption:focus-within::before { display: none; }
-	.quill-image:focus-within figcaption:empty::before {
-		content: "Type caption for image (optional)";
-		color: rgba(0,0,0,.33);
-		pointer-events: none;
-	}
-
-	.quill-image .quill-image__format {
-		position: relative;
-		height: 32px;
-		bottom: 42px;
-		margin-bottom: -32px;
-		display: flex;
-		background-color: rgba(0,0,0,.66);
-		border-radius: 4px;
-		z-index: 2;
-	}
-
-	.quill-image .quill-image__format input {
-		--webkit-appearance: none;
-		appearance: none;
-		width: 1px;
-		height: 1px;
-		border: none;
-		background: transparent;
-		padding: 0;
-		margin: 0;
-		opacity: 0.00001;
-	}
-
-	.quill-image .quill-image__format label {
-		width: 32px;
-		height: 32px;
-		display: flex;
-		cursor: pointer;
-		--webkit-appearance: none;
-		appearance: none;
-		border: none;
-		color: white;
-		justify-content: center;
-		align-items: center;
-		margin: 0;
-    padding: 0;
-	}
-	.quill-image .quill-image__format label::before,
-	.quill-image .quill-image__format label::after {
-		display: none !important;
-	}
-	.quill-image .quill-image__format label svg {
-		fill: currentColor;
-		pointer-events: none;
-		width: 26px;
-		height: 26px;
-	}
-	.quill-image .quill-image__format input:checked + label {
-		color: var(--accent-color);
-	}
-	.quill-image  input.quill-image__alt {
-		position: relative;
-		height: 20px;
-		box-sizing: border-box;
-		margin-bottom: -20px;
-    top: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    line-height: 20px;
-    padding: 0 4px;
-    border-radius: 5px;
-    background: white;
-    border: 1px solid currentColor;
-    color: rgba(0,0,0,.25);
-    font-size: 11px;
-    display: inline;
-		width: 24px;
-		transition: width .28s, color .15s, border-color .15s;
-		z-index: 3;
-	}
-
-	.quill-image  input.quill-image__alt:valid {
-		color: var(--accent-color);
-	}
-
-	.quill-image  input.quill-image__alt:focus {
-		width: calc(100% - 2px);
-		color: rgb(0,0,0,.85);
-	}
-
-	.quill-image  input.quill-image__alt:focus + figcaption {
-		opacity: 0;
-	}
-
-	.quill-image img[src^="${TRANSPARENT_PIXEL}"] {
-		width: 100%;
-		min-width: 280px;
-		max-width: 100%;
-		height: 0;
-		padding-bottom: 71%;
-		background-color: #F5F9FC;
-		background-image: linear-gradient(-45deg, transparent calc(50% - 1px), rgb(218, 227, 235) 50%, transparent calc(50% + 1px));
-		background-repeat: repeat;
-		background-size: 0.6rem 0.6rem;
-		background-position: center;
-	}
-
-	.quill-image input[type=file] {
-		display: none;
-		position: absolute;
-    cursor: pointer;
-		opacity: 0;
-    top: 0;
-    left: 0;
-    bottom: 0;
-		right: 0;
-		z-index: 1;
-	}
-
-	.quill-image img[src^="${TRANSPARENT_PIXEL}"] ~ input[type=file] {
-		display: block;
-	}
-
-	.quill-image-focus .ql-tooltip { display: none !important; }
-
-	.quill-image:focus-within img[src^="${TRANSPARENT_PIXEL}"] {
-		width: 100%;
-		min-width: 280px;
-		max-width: 100%;
-		height: 0;
-		padding-bottom: 71%;
-		background-color: #F5F9FC;
-		background-image:
-			url(data:image/svg+xml;charset=US-ASCII,${encodeURIComponent(ICONS.upload)});
-		background-repeat: no-repeat;
-		background-size: 50%;
-		background-position: center;
-
-	}
-
-`;
-
-function makeEmbed(quill, Quill, options) {
+function makeEmbed(Quill, options) {
 	if (!document.getElementById('quill-image-styles')) { addStyleString('quill-image-styles', STYLES); }
 
-	const Delta = Quill.import('delta');
 	const BlockEmbed = Quill.import('blots/block/embed');
 	let raf = undefined;
 
@@ -317,7 +118,7 @@ function makeEmbed(quill, Quill, options) {
 					reader.onload = async (e) => {
 						let dataUrl = e.target.result;
 						img.setAttribute('src', dataUrl);
-						dataUrl = await options.handler(this.quill, node.id, dataUrl, type);
+						dataUrl = await options.handler(node.id, dataUrl, type);
 						img.setAttribute('src', dataUrl);
 						input.value = '';
 					}
@@ -349,7 +150,7 @@ function makeEmbed(quill, Quill, options) {
 						reader.onload = async (e) => {
 							let dataUrl = e.target.result;
 							img.setAttribute('src', dataUrl);
-							dataUrl = await options.handler(this.quill, node.id, dataUrl, type);
+							dataUrl = await options.handler(node.id, dataUrl, type);
 							img.setAttribute('src', dataUrl);
 							input.value = '';
 						}
@@ -382,7 +183,6 @@ function makeEmbed(quill, Quill, options) {
 		static complexify(node) {
 			console.log('complexify', !!node.querySelector('.quill-image__format'), document.activeElement);
 			if (!!node.querySelector('.quill-image__format')) { return; }
-			quill.root.parentElement.classList.add('quill-image-focus');
 			const caption = node.querySelector('figcaption');
 			caption && caption.setAttribute('contenteditable', true);
 			node.insertBefore(makeMenu(node), caption);
@@ -393,15 +193,13 @@ function makeEmbed(quill, Quill, options) {
 		static simplify(node) {
 			console.log('simplify', !node.querySelector('.quill-image__format'), document.activeElement);
 			if (!node.querySelector('.quill-image__format')) { return; }
-			quill.root.parentElement.classList.remove('quill-image-focus');
 			const caption = node.querySelector('figcaption');
 			caption && caption.removeAttribute('contenteditable');
 			Array.from(node.querySelectorAll('.quill-image__format')).forEach(e => e.remove());
 			Array.from(node.querySelectorAll('.quill-image__alt')).forEach(e => e.remove());
 			node.removeChild(node._input);
-			// Force a text-change trigger so consumers get the updated markup!
 			setTimeout(() => {
-				quill.updateContents(new Delta().retain(Infinity), 'user');
+				node.dispatchEvent(new Event(CUSTOM_EVENT_NAME, { "bubbles": true }));
 			}, 10);
 		}
 
@@ -417,6 +215,7 @@ function makeEmbed(quill, Quill, options) {
 
 		constructor(dom, attrs){
 			super(dom, attrs);
+			// We need to hold on to the blot instance so our global keyboard handlers can do their jobs.
 			dom._blot = this;
 		}
 
@@ -430,116 +229,53 @@ function makeEmbed(quill, Quill, options) {
 	return ImageBlot;
 }
 
-function isQuillImageBlot(node) {
-	node = node.domNode || node;
-	return !!(node && node.classList && node.classList.contains('quill-image'));
-}
+class QuillImage {
 
-function isInsideQuillImageBlot(node) {
-	while (node && node !== node.parentElement) {
-		if (isQuillImageBlot(node)) { return true; }
-		node = node.parentElement;
-	}
-}
+	constructor(Quill, options = {}) {
+		const Delta = Quill.import('delta');
 
-function getPrevQuillImageBlot(node) {
-	while (node && node !== node.parent) {
-		if (node.prev && isQuillImageBlot(node.prev)) { return node.prev; }
-		node = node.parent;
-	}
-	return null;
-}
-
-function getNextQuillImageBlot(node) {
-	while (node && node !== node.parent) {
-		if (node.next && isQuillImageBlot(node.next)) { return node.next; }
-		node = node.parent;
-	}
-	return null;
-}
-
-export const QuillImageBindings = {
-	'quill-image:backspace': {
-		key: 'backspace',
-		handler: function(range, keycontext) {
-			const blot = this.quill.getLeaf(range.index)[0];
-			const node = blot.domNode;
-			if (isQuillImageBlot(node)) { return true; }
-			const prevQuillImageBlock = getPrevQuillImageBlot(blot);
-			if (prevQuillImageBlock && !blot.value()) {
-				this.quill.deleteText(range.index, 1, this.quill.constructor.sources.USER);
-				this.quill.setSelection(this.quill.getIndex(prevQuillImageBlock), 0);
-				prevQuillImageBlock.domNode.focus();
-				return false;
-			}
-			return true;
-		}
-	},
-	'quill-image:up': {
-		key: 'up',
-		handler: function(range, keycontext) {
-			const blot = this.quill.getLeaf(range.index)[0];
-			const prevQuillImageBlock = getPrevQuillImageBlot(blot);
-			if (prevQuillImageBlock) {
-				this.quill.setSelection(this.quill.getIndex(prevQuillImageBlock), 0);
-				prevQuillImageBlock.domNode.focus();
-				return false;
-			}
-			return true;
-		}
-	},
-	'quill-image:down': {
-		key: 'down',
-		handler: function(range, keycontext) {
-			const blot = this.quill.getLeaf(range.index)[0];
-			const nextQuillImageBlock = getNextQuillImageBlot(blot);
-			if (nextQuillImageBlock) {
-				this.quill.setSelection(this.quill.getIndex(nextQuillImageBlock), 0);
-				nextQuillImageBlock.domNode.focus();
-				return false;
-			}
-			return true;
-		}
-	},
-};
-
-export class QuillImage {
-
-	constructor(quill, options = {}) {
-		this.quill = quill;
 		this.options = options;
 		if (typeof this.options.handler !== 'function') {
 			this.options.handler = ((_quill, _id, data, _type) => { console.log(data); return data; });
 		}
-		this.handleDrop = this.handleDrop.bind(this);
-		this.handlePaste = this.handlePaste.bind(this);
-		this.handleKeyDown = this.handleKeyDown.bind(this);
+
+		const self = this;
 
 		this.insert = this.insert.bind(this);
-		this.embed = makeEmbed(quill, quill.constructor, options);
+		this.embed = makeEmbed(Quill, options);
 
-		this.quill.root.addEventListener('drop', this.handleDrop, false);
-		this.quill.root.addEventListener('paste', this.handlePaste, false);
-		this.quill.root.addEventListener('keydown', this.handleKeyDown, true);
+    const prev = Quill.prototype.setContents;
+    Quill.prototype.setContents = function () {
+      const quill = this;
+			quill.root.addEventListener('drop', self.handleDrop.bind(self, quill), false);
+			quill.root.addEventListener('paste', self.handlePaste.bind(self, quill), false);
+			quill.root.addEventListener('keydown', self.handleKeyDown.bind(self, quill), true);
 
-    quill.on('editor-change', () => {
-      const range = quill.getSelection(false);
-      if (range == null) return true;
-			const [blot] = quill.getLine(range.index);
-			const node = blot.domNode;
-      if (isQuillImageBlot(node) && !node.contains(document.activeElement)) { node.focus(); }
-      return true;
-    });
+			// Force a text-change event trigger so consumers get the updated markup!
+			quill.root.addEventListener(CUSTOM_EVENT_NAME, () => {
+				quill.updateContents(new Delta().retain(Infinity), 'user');
+			});
+
+			quill.on('editor-change', () => {
+				const range = quill.getSelection(false);
+				if (range == null) return true;
+				const [blot] = quill.getLine(range.index);
+				const node = blot.domNode;
+				if (isQuillImageBlot(node) && !node.contains(document.activeElement)) { node.focus(); }
+				return true;
+			});
+			return prev.apply(quill, arguments);
+		};
 
 	}
 
-	handleKeyDown(e) {
-		const quill = this.quill;
+	handleKeyDown(quill, e) {
 
 		// TODO: Enable basic text shortcuts anywhere inside of our plugin (stealing them back from Quill).
 		if (isInsideQuillImageBlot(e.target)) {
 			e.stopImmediatePropagation();
-			if (e.keyCode === 65 && e.metaKey) {
+			if (e.target.tagName !== 'TEXTAREA' || e.target.tagName !== 'INPUT') { /* NOOP */ }
+			else if (e.keyCode === 65 && e.metaKey) {
 				e.preventDefault();
 				e.stopImmediatePropagation();
 				// TODO: Select All
@@ -587,7 +323,7 @@ export class QuillImage {
 			e.preventDefault();
 			e.stopPropagation();
 			const idx = quill.getIndex(e.target._blot);
-			this.quill.setSelection(idx - 1, 0);
+			quill.setSelection(idx - 1, 0);
 			const leaf = quill.getLeaf(idx - 1)[0];
 			if (isQuillImageBlot(leaf)) { leaf.domNode.focus(); }
 		}
@@ -605,7 +341,7 @@ export class QuillImage {
 
 	/* handle image drop event
 	*/
-	handleDrop (e) {
+	handleDrop (quill, e) {
 		e.preventDefault()
 		if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
 			if (document.caretRangeFromPoint) {
@@ -615,15 +351,15 @@ export class QuillImage {
 					selection.setBaseAndExtent(range.startContainer, range.startOffset, range.startContainer, range.startOffset)
 				}
 			}
-			this.readFiles(e.dataTransfer.files, this.insert, e)
+			this.readFiles(e.dataTransfer.files, this.insert.bind(this, quill), e)
 		}
 	}
 
 	/* handle image paste event
 	*/
-	handlePaste (e) {
+	handlePaste (quill, e) {
 		if (e.clipboardData && e.clipboardData.items && e.clipboardData.items.length) {
-			this.readFiles(e.clipboardData.items, this.insert, e)
+			this.readFiles(e.clipboardData.items, this.insert.bind(this, quill), e)
 		}
 	}
 
@@ -645,10 +381,9 @@ export class QuillImage {
 
 	/* insert into the editor
 	*/
-	async insert (dataUrl, type) {
-		const quill = this.quill;
+	async insert (quill, dataUrl, type) {
 		const imageId = guid();
-		const index = (quill.getSelection() || {}).index || this.quill.getLength();
+		const index = (quill.getSelection() || {}).index || quill.getLength();
 		quill.insertEmbed(index, 'image', {
 			imageId,
 			src: dataUrl,
@@ -660,8 +395,13 @@ export class QuillImage {
 		quill.formatText(index, 1, 'image');
 		document.getElementById(imageId).focus();
 		if (dataUrl && type) {
-			const url = await this.options.handler(this.quill, imageId, dataUrl, type);
+			const url = await this.options.handler(quill, imageId, dataUrl, type);
 			document.getElementById(imageId).querySelector('img').setAttribute('src', url);
 		}
 	}
 }
+
+export {
+	QuillImage,
+	QuillImageBindings
+};

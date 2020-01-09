@@ -14,13 +14,10 @@ yarn add quill-image --save
 import Quill from 'quill'
 const { QuillImage, QuillImageBindings } = require('quill-image');
 
-Quill.register('modules/quillImage', QuillImage);
+const imgBlot = new QuillImage(Quill, { handler: imageHandler });
 
 const quill = new Quill('#editor-container', {
   modules: {
-    quillImage: {
-      handler,
-    },
     keyboard: {
       bindings: {
         ...QuillImageBindings,
@@ -56,6 +53,9 @@ async function handler(quill, guid, dataUrl, type) {
     setTimeout(() => resolve('https://media2.giphy.com/media/RQgzLsPYlzrBC/source.gif'), 3000);
   });
 }
+
+const quill = new Quill(dom);
+imgBlot.insert(quill);
 ```
 
 If you did not config a image handler, it will insert the base64 image into the quill editor directory after you drop/paste a image.
