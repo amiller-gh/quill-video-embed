@@ -1,6 +1,6 @@
 {
   "name": "quill-image",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "A quill editor module for drop and paste image, with a callback hook before insert image into the editor",
   "main": "dist/index.js",
   "scripts": {
