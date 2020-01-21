@@ -13,7 +13,8 @@ function addStyleString(id, str) {
   document.head.appendChild(node);
 }
 
-const CUSTOM_EVENT_NAME = guid('quill-image-event');
+const CUSTOM_BLUR_EVENT_NAME = guid('quill-image-event');
+const CUSTOM_FOCUS_EVENT_NAME = guid('quill-image-focus');
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const FORMATS = [ 'left', 'center', 'right', 'full' ];
 const ICONS = {
@@ -185,8 +186,6 @@ function makeEmbed(Quill, options) {
 				}
 			});
 
-			caption.addEventListener('focus', (e) => { setTimeout(() => e.target.parentElement.querySelector('textarea').focus(), 100) }, false);
-
 			// Quill focuses out on mousedown... Thanks Quill...
 			node.addEventListener('mousedown', (evt) => evt.stopPropagation(), false);
 			node.addEventListener('mouseup', (evt) => evt.stopPropagation(), false);
@@ -222,12 +221,12 @@ function makeEmbed(Quill, options) {
 			let raf = undefined;
 			node.addEventListener('focusin', (e) => {
 				window.cancelAnimationFrame(raf);
-				raf = window.requestAnimationFrame(() => ImageBlot.process(e.target));
+				raf = window.requestAnimationFrame(() => ImageBlot.process(node));
 			}, false);
 
 			node.addEventListener('focusout', (e) => {
 				window.cancelAnimationFrame(raf);
-			  raf = window.requestAnimationFrame(() => ImageBlot.process(e.target));
+			  raf = window.requestAnimationFrame(() => ImageBlot.process(node));
 			}, false);
 
 			return node;
@@ -241,6 +240,7 @@ function makeEmbed(Quill, options) {
 		}
 
 		static complexify(node) {
+			const active = document.activeElement;
 			if (!!node.querySelector('.quill-image__format')) { return; }
 			// console.log('complexify', node.id);
 			const caption = node.querySelector('figcaption');
@@ -249,6 +249,13 @@ function makeEmbed(Quill, options) {
 			node.insertBefore(makeLinkButton(node, node.__link__), caption);
 			node.insertBefore(makeCaptionEdit(node), caption);
 			node.appendChild(node._input);
+			if (active === caption) {
+				node.querySelector('textarea').focus();
+			}
+
+			setTimeout(() => {
+				node.dispatchEvent(new Event(CUSTOM_FOCUS_EVENT_NAME, { "bubbles": true }));
+			}, 10);
 		}
 
 		static simplify(node) {
@@ -262,7 +269,7 @@ function makeEmbed(Quill, options) {
 			Array.from(node.querySelectorAll('.quill-image__caption-edit')).forEach(e => e.remove());
 			node.removeChild(node._input);
 			setTimeout(() => {
-				node.dispatchEvent(new Event(CUSTOM_EVENT_NAME, { "bubbles": true }));
+				node.dispatchEvent(new Event(CUSTOM_BLUR_EVENT_NAME, { "bubbles": true }));
 			}, 10);
 		}
 
@@ -316,8 +323,15 @@ class QuillImage {
 			quill.root.addEventListener('keydown', self.handleKeyDown.bind(self, quill), true);
 
 			// Force a text-change event trigger so consumers get the updated markup!
-			quill.root.addEventListener(CUSTOM_EVENT_NAME, () => {
+			quill.root.addEventListener(CUSTOM_BLUR_EVENT_NAME, () => {
 				quill.updateContents(new Delta().retain(Infinity), 'user');
+			});
+
+			quill.root.addEventListener(CUSTOM_FOCUS_EVENT_NAME, (e) => {
+				const el = document.activeElement;
+				const idx = quill.getIndex(e.target._blot);
+				quill.setSelection(idx, 0, 'silent');
+				el.focus();
 			});
 
 			quill.on('editor-change', () => {
@@ -325,9 +339,15 @@ class QuillImage {
 				if (range == null) return true;
 				const [blot] = quill.getLine(range.index);
 				const node = blot.domNode;
-				if (isQuillImageBlot(node) && !node.contains(document.activeElement)) { node.focus(); }
+				const prev = window.scrollTop
+				window.requestAnimationFrame(() => {
+					if(node === document.activeElement || node.contains(document.activeElement)) { return; }
+					if (isQuillImageBlot(node) && !node.querySelector('.quill-image__format')) { node.focus(); }
+					window.scrollTop = prev;
+				});
 				return true;
 			});
+
 			return prev.apply(quill, arguments);
 		};
 
