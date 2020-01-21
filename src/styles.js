@@ -22,11 +22,6 @@ export const STYLES = `
   max-width: 50%;
   margin: 0 auto 12px;
   width: 100%;
-  width: fit-content;
-}
-.quill-image[data-format=center] img {
-  width: auto;
-  max-width: 75%;
 }
 .quill-image[data-format=left] {
   width: calc(50% - 12px);
@@ -201,11 +196,6 @@ textarea.quill-image__caption-edit {
   background-position: center;
   color: transparent;
   cursor: pointer;
-}
-
-.quill-image[data-format=center] input.quill-image__link {
-  max-width: calc(75% - 16px);
-  right: calc(-38% + 8px);
 }
 
 .quill-image  input.quill-image__link::placeholder {

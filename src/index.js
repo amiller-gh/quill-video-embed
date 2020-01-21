@@ -153,6 +153,7 @@ function makeEmbed(Quill, options) {
 			let link = document.createElement('a');
 			link.setAttribute('href', value.link || '#');
 			link.setAttribute('aria-describedby', value.imageId);
+			link.setAttribute('target', '_blank');
 			node.__link__ = link;
 
 			let input = document.createElement('input');
@@ -226,7 +227,7 @@ function makeEmbed(Quill, options) {
 
 			node.addEventListener('focusout', (e) => {
 				window.cancelAnimationFrame(raf);
-				raf = window.requestAnimationFrame(() => ImageBlot.process(node));
+				window.requestAnimationFrame(() => ImageBlot.process(node));
 			}, false);
 
 			return node;
