@@ -137,7 +137,6 @@ function makeEmbed(Quill, options) {
 	if (!document.getElementById('quill-image-styles')) { addStyleString('quill-image-styles', STYLES); }
 
 	const BlockEmbed = Quill.import('blots/block/embed');
-	let raf = undefined;
 
 	class ImageBlot extends BlockEmbed {
 		static create(value) {
@@ -220,14 +219,15 @@ function makeEmbed(Quill, options) {
 				}
 			}, false);
 
-			node.addEventListener('focusin', () => {
+			let raf = undefined;
+			node.addEventListener('focusin', (e) => {
 				window.cancelAnimationFrame(raf);
-				raf = window.requestAnimationFrame(() => ImageBlot.process(node));
+				raf = window.requestAnimationFrame(() => ImageBlot.process(e.target));
 			}, false);
 
 			node.addEventListener('focusout', (e) => {
 				window.cancelAnimationFrame(raf);
-				window.requestAnimationFrame(() => ImageBlot.process(node));
+			  raf = window.requestAnimationFrame(() => ImageBlot.process(e.target));
 			}, false);
 
 			return node;
@@ -241,8 +241,8 @@ function makeEmbed(Quill, options) {
 		}
 
 		static complexify(node) {
-			console.log('complexify', !!node.querySelector('.quill-image__format'), document.activeElement);
 			if (!!node.querySelector('.quill-image__format')) { return; }
+			// console.log('complexify', node.id);
 			const caption = node.querySelector('figcaption');
 			node.insertBefore(makeMenu(node), caption);
 			node.insertBefore(makeAltButton(node), caption);
@@ -252,8 +252,8 @@ function makeEmbed(Quill, options) {
 		}
 
 		static simplify(node) {
-			console.log('simplify', !node.querySelector('.quill-image__format'), document.activeElement);
 			if (!node.querySelector('.quill-image__format')) { return; }
+			// console.log('simplify', node.id);
 			const caption = node.querySelector('figcaption');
 			caption.innerText = caption.innerText.trim();
 			Array.from(node.querySelectorAll('.quill-image__format')).forEach(e => e.remove());
