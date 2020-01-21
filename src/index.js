@@ -70,10 +70,43 @@ function makeAltButton(node) {
 	altButton.placeholder = 'Alt text for image (optional)';
 	altButton.required = true;
 	altButton.value = node.querySelector('img').alt ? "Alt" : "";
+
+	altButton.addEventListener('keydown', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	altButton.addEventListener('keyup', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	altButton.addEventListener('keypress', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+
 	altButton.addEventListener('input', e => node.querySelector('img').alt = altButton.value || "");
 	altButton.addEventListener('blur', e => altButton.value = node.querySelector('img').alt ? "Alt" : "");
 	altButton.addEventListener('focus', e => {
 		altButton.value = node.querySelector('img').alt || "";
+		selectAll(altButton);
+	});
+	return altButton;
+}
+
+function makeLinkButton(node, link) {
+	const altButton = document.createElement('input');
+	altButton.className = 'quill-image__link';
+	altButton.placeholder = 'https://google.com';
+	altButton.required = true;
+	altButton.type = 'url';
+	altButton.value = link && link.getAttribute('href') !== '#' ? link : '';
+
+	altButton.addEventListener('keydown', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	altButton.addEventListener('keyup', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	altButton.addEventListener('keypress', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+
+	altButton.addEventListener('input', e => {
+		link.setAttribute('href', altButton.value);
+		altButton.value ? node.appendChild(link) : link.remove();
+	});
+	altButton.addEventListener('blur', e => {
+		link.setAttribute('href', altButton.value);
+		altButton.value ? node.appendChild(link) : link.remove();
+	});
+	altButton.addEventListener('focus', e => {
+		const url = link.getAttribute('href');
+		altButton.value = url && url !== '#' ? url : '';
 		selectAll(altButton);
 	});
 	return altButton;
@@ -117,6 +150,11 @@ function makeEmbed(Quill, options) {
 			img.setAttribute('alt', value.alt || '');
 			img.setAttribute('src', value.src || TRANSPARENT_PIXEL);
 
+			let link = document.createElement('a');
+			link.setAttribute('href', value.link || '#');
+			link.setAttribute('aria-describedby', value.imageId);
+			node.__link__ = link;
+
 			let input = document.createElement('input');
 			input.setAttribute('type', 'file');
 			input.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
@@ -128,6 +166,7 @@ function makeEmbed(Quill, options) {
 
 			node.appendChild(img);
 			node.appendChild(caption);
+			node.appendChild(link);
 
 			input.addEventListener('change', (e) => {
 				var files = e.target.files, file;
@@ -206,6 +245,7 @@ function makeEmbed(Quill, options) {
 			const caption = node.querySelector('figcaption');
 			node.insertBefore(makeMenu(node), caption);
 			node.insertBefore(makeAltButton(node), caption);
+			node.insertBefore(makeLinkButton(node, node.__link__), caption);
 			node.insertBefore(makeCaptionEdit(node), caption);
 			node.appendChild(node._input);
 		}
@@ -217,6 +257,7 @@ function makeEmbed(Quill, options) {
 			caption.innerText = caption.innerText.trim();
 			Array.from(node.querySelectorAll('.quill-image__format')).forEach(e => e.remove());
 			Array.from(node.querySelectorAll('.quill-image__alt')).forEach(e => e.remove());
+			Array.from(node.querySelectorAll('.quill-image__link')).forEach(e => e.remove());
 			Array.from(node.querySelectorAll('.quill-image__caption-edit')).forEach(e => e.remove());
 			node.removeChild(node._input);
 			setTimeout(() => {
@@ -229,6 +270,7 @@ function makeEmbed(Quill, options) {
 				imageId: node.id,
 				alt: node.querySelector('img').getAttribute('alt') || undefined,
 				src: node.querySelector('img').getAttribute('src'),
+				link: node.querySelector('a') ? node.querySelector('a').getAttribute('href') || undefined : undefined,
 				caption: node.querySelector('figcaption') ? node.querySelector('figcaption').innerText || undefined : undefined,
 				format: node.dataset.format || 'center',
 			};
@@ -407,6 +449,7 @@ class QuillImage {
 			imageId,
 			src: dataUrl,
 			alt: undefined,
+			link: undefined,
 			caption: undefined,
 			format: 'center',
 			handler: this.options.handler,

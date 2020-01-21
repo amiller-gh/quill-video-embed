@@ -1,5 +1,7 @@
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const UPLOAD = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#dae3eb" stroke="#F5F9FC" stroke-width="8" d="M398.1,233.2c0-1.2,0.2-2.4,0.2-3.6c0-65-51.8-117.6-115.7-117.6c-46.1,0-85.7,27.4-104.3,67c-8.1-4.1-17.2-6.5-26.8-6.5c-29.5,0-54.1,21.9-58.8,50.5C57.3,235.2,32,269.1,32,309c0,50.2,40.1,91,89.5,91H224v-80l-48.2,0l80.2-83.7l80.2,83.6l-48.2,0v80h110.3c45.2,0,81.7-37.5,81.7-83.4C480,270.6,443.3,233.3,398.1,233.2z"/></svg>';
+const LINK = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="white" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>';
+const LINKVALID = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#3eb0ef" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>';
 
 export const STYLES = `
 .quill-image {
@@ -168,6 +170,66 @@ textarea.quill-image__caption-edit {
 
 .quill-image  input.quill-image__alt:focus + figcaption {
   opacity: 0;
+}
+
+
+.quill-image  input.quill-image__link {
+  position: relative;
+  height: 32px;
+  width: 32px;
+  min-width: 32px;
+  bottom: 42px;
+  margin-bottom: -32px;
+  right: calc(-50% + 8px);
+  max-width: calc(100% - 16px);
+  background-size: 20px;
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  line-height: 20px;
+  padding: 0 4px;
+  border-radius: 5px;
+  background: rgba(0,0,0,.75);
+  border: 1px solid rgba(0,0,0,.75);
+  font-size: 11px;
+  display: inline;
+  transition: width .28s, color .15s, border-color .15s;
+  z-index: 4;
+  font-weight: bold;
+  background-image:
+    url(data:image/svg+xml;charset=US-ASCII,${encodeURIComponent(LINK)});
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
+  cursor: pointer;
+}
+
+.quill-image[data-format=center] input.quill-image__link {
+  max-width: calc(75% - 16px);
+  right: calc(-38% + 8px);
+}
+
+.quill-image  input.quill-image__link::placeholder {
+  color: transparent
+}
+
+.quill-image  input.quill-image__link:valid {
+  border: 1px solid var(--accent-color);
+  background-image:
+    url(data:image/svg+xml;charset=US-ASCII,${encodeURIComponent(LINKVALID)});
+}
+
+.quill-image  input.quill-image__link:focus {
+  width: calc(100% - 2px);
+  color: white;
+  background-image: none;
+}
+
+.quill-image  input.quill-image__link:focus::placeholder {
+  color: rgba(255, 255, 255, .75);
+}
+
+.quill-image a {
+  display: none;
 }
 
 .quill-image img[src^="${TRANSPARENT_PIXEL}"] {
