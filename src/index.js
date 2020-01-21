@@ -150,6 +150,8 @@ function makeEmbed(Quill, options) {
 			img.setAttribute('alt', value.alt || '');
 			img.setAttribute('src', value.src || TRANSPARENT_PIXEL);
 
+			if (value.link === '#') { value.link = undefined; }
+
 			let link = document.createElement('a');
 			link.setAttribute('href', value.link || '#');
 			link.setAttribute('aria-describedby', value.imageId);
@@ -167,7 +169,10 @@ function makeEmbed(Quill, options) {
 
 			node.appendChild(img);
 			node.appendChild(caption);
-			node.appendChild(link);
+
+			if (value.link) {
+				node.appendChild(link);
+			}
 
 			input.addEventListener('change', (e) => {
 				var files = e.target.files, file;
