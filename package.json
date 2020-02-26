@@ -1,7 +1,7 @@
 {
-  "name": "quill-image",
+  "name": "quill-video",
   "version": "0.0.18",
-  "description": "A quill editor module for drop and paste image, with a callback hook before insert image into the editor",
+  "description": "A quill editor module for video embeds.",
   "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && mkdir dist && babel src --presets=es2015 --out-dir dist",
@@ -10,10 +10,8 @@
   "keywords": [
     "quill",
     "editor",
-    "drop",
-    "image",
-    "paste",
-    "image"
+    "video",
+    "embed"
   ],
   "author": "Adam Miller",
   "license": "MIT",
@@ -22,5 +20,8 @@
     "babel-preset-env": "^1.2.2",
     "babel-preset-es2015": "^6.24.0",
     "watch": "^1.0.2"
+  },
+  "dependencies": {
+    "get-video-id": "^3.1.4"
   }
 }

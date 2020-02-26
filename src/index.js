@@ -1,5 +1,7 @@
-import { isQuillImageBlot, isInsideQuillImageBlot } from './utils';
-import { QuillImageBindings } from './bindings';
+const getVideoId = require('get-video-id');
+
+import { isQuillVideoBlot, isInsideQuillVideoBlot } from './utils';
+import { QuillVideoBindings } from './bindings';
 import { STYLES } from './styles';
 
 const guid = () => ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c  => (c ^ window.crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
@@ -13,8 +15,8 @@ function addStyleString(id, str) {
   document.head.appendChild(node);
 }
 
-const CUSTOM_BLUR_EVENT_NAME = guid('quill-image-event');
-const CUSTOM_FOCUS_EVENT_NAME = guid('quill-image-focus');
+const CUSTOM_BLUR_EVENT_NAME = guid('quill-video-event');
+const CUSTOM_FOCUS_EVENT_NAME = guid('quill-video-focus');
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const FORMATS = [ 'left', 'center', 'right', 'full' ];
 const ICONS = {
@@ -22,6 +24,18 @@ const ICONS = {
 	center: '<svg><path d="M5 20.558v-.9c0-.122.04-.226.122-.312a.404.404 0 0 1 .305-.13h13.347a.45.45 0 0 1 .32.13c.092.086.138.19.138.312v.9a.412.412 0 0 1-.138.313.435.435 0 0 1-.32.13H5.427a.39.39 0 0 1-.305-.13.432.432 0 0 1-.122-.31zm0-3.554V9.01c0-.12.04-.225.122-.31a.4.4 0 0 1 .305-.13h13.347c.122 0 .23.043.32.13.092.085.138.19.138.31v7.994a.462.462 0 0 1-.138.328.424.424 0 0 1-.32.145H5.427a.382.382 0 0 1-.305-.145.501.501 0 0 1-.122-.328zM5 6.342v-.87c0-.12.04-.23.122-.327A.382.382 0 0 1 5.427 5h13.347c.122 0 .23.048.32.145a.462.462 0 0 1 .138.328v.87c0 .12-.046.225-.138.31a.447.447 0 0 1-.32.13H5.427a.4.4 0 0 1-.305-.13.44.44 0 0 1-.122-.31z" fill-rule="evenodd"></path></svg>',
 	right: '<svg style="transform: rotate(180deg)"><path d="M2 16.99V9.047c0-.112.042-.22.123-.32a.384.384 0 0 1 .32-.152h11.93c.102 0 .2.05.296.15.09.103.14.21.14.322v7.943c0 .122-.05.225-.14.31a.44.44 0 0 1-.31.13H2.44a.427.427 0 0 1-.44-.44zm5.847 3.517v-.87c0-.1.038-.194.114-.28.08-.086.17-.13.27-.13h14.22c.13 0 .23.046.32.14.09.09.14.18.14.27v.87a.42.42 0 0 1-.14.332c-.09.08-.19.13-.31.13H8.23a.34.34 0 0 1-.274-.14.545.545 0 0 1-.107-.34zm0-14.108v-.92c0-.13.038-.23.114-.32a.35.35 0 0 1 .27-.13h14.22c.13 0 .23.04.32.13s.14.19.14.31v.92c0 .09-.04.18-.14.26-.09.08-.19.13-.31.13H8.23c-.1 0-.19-.05-.267-.13a.447.447 0 0 1-.11-.27zm8.497 7.09v-.9c0-.15.048-.27.144-.37a.477.477 0 0 1 .328-.14l5.624-.01c.12 0 .23.04.32.14.093.09.14.21.14.36v.9c0 .11-.047.21-.14.32-.09.1-.2.15-.32.15l-5.625.01c-.12 0-.23-.05-.327-.15a.467.467 0 0 1-.144-.33zm0-3.58v-.86c0-.11.048-.22.144-.32.097-.1.207-.16.328-.15l5.624-.01c.12 0 .23.05.32.15.092.1.14.21.14.32v.87c0 .13-.047.24-.14.32-.09.08-.2.12-.32.12l-5.625.01a.45.45 0 0 1-.334-.13.408.408 0 0 1-.13-.32zm0 7.04v-.9c0-.15.05-.27.146-.37a.474.474 0 0 1 .327-.14l5.624-.01c.13 0 .23.04.33.14.09.09.14.21.14.36v.89c0 .11-.04.21-.13.32-.09.1-.2.15-.32.15l-5.62.01c-.12 0-.23-.05-.32-.16a.485.485 0 0 1-.14-.32z" fill-rule="evenodd"></path></svg>',
 	full: '<svg><path d="M3 17.004V9.01a.4.4 0 0 1 .145-.31.476.476 0 0 1 .328-.13h17.74c.12 0 .23.043.327.13a.4.4 0 0 1 .145.31v7.994a.404.404 0 0 1-.145.313.48.48 0 0 1-.328.13H3.472a.483.483 0 0 1-.327-.13.402.402 0 0 1-.145-.313zm2.212 3.554v-.87c0-.13.05-.243.145-.334a.472.472 0 0 1 .328-.137H19c.124 0 .23.045.322.137a.457.457 0 0 1 .138.335v.86c0 .12-.046.22-.138.31a.478.478 0 0 1-.32.13H5.684a.514.514 0 0 1-.328-.13.415.415 0 0 1-.145-.32zm0-14.246v-.84c0-.132.05-.243.145-.334A.477.477 0 0 1 5.685 5H19a.44.44 0 0 1 .322.138.455.455 0 0 1 .138.335v.84a.451.451 0 0 1-.138.334.446.446 0 0 1-.32.138H5.684a.466.466 0 0 1-.328-.138.447.447 0 0 1-.145-.335z" fill-rule="evenodd"></path></svg>',
+}
+
+function getVideoUrl(url) {
+	const { id, service } = getVideoId(url);
+	if (!id || !service) { return TRANSPARENT_PIXEL; }
+	switch (service) {
+		case 'youtube': return `https://www.youtube.com/embed/${id}`;
+		case 'vimeo': return `https://player.vimeo.com/video/${id}`;
+		case 'vine': return `https://vine.co/v/${id}/embed/simple`;
+		case 'videopress': return `https://videopress.com/embed/${id}`;
+		default: return TRANSPARENT_PIXEL;
+	}
 }
 
 function selectAll(el) {
@@ -38,7 +52,7 @@ function selectAll(el) {
 
 function makeMenu(node) {
 	const nav = document.createElement('nav');
-	nav.className = 'quill-image__format';
+	nav.className = 'quill-video__format';
 	for (let format of FORMATS) {
 		const button = document.createElement('input');
 		const label = document.createElement('label');
@@ -67,56 +81,56 @@ function makeMenu(node) {
 
 function makeAltButton(node) {
 	const altButton = document.createElement('input');
-	altButton.className = 'quill-image__alt';
-	altButton.placeholder = 'Alt text for image (optional)';
+	altButton.className = 'quill-video__alt';
+	altButton.placeholder = 'Title text for image (optional)';
 	altButton.required = true;
-	altButton.value = node.querySelector('img').alt ? "Alt" : "";
+	altButton.value = node.querySelector('iframe').title ? "Title" : "";
 
 	altButton.addEventListener('keydown', e => e.keyCode === 13 ? e.preventDefault() : null, true);
 	altButton.addEventListener('keyup', e => e.keyCode === 13 ? e.preventDefault() : null, true);
 	altButton.addEventListener('keypress', e => e.keyCode === 13 ? e.preventDefault() : null, true);
 
-	altButton.addEventListener('input', e => node.querySelector('img').alt = altButton.value || "");
-	altButton.addEventListener('blur', e => altButton.value = node.querySelector('img').alt ? "Alt" : "");
+	altButton.addEventListener('input', e => node.querySelector('iframe').title = altButton.value || "");
+	altButton.addEventListener('blur', e => altButton.value = node.querySelector('iframe').title ? "Title" : "");
 	altButton.addEventListener('focus', e => {
-		altButton.value = node.querySelector('img').alt || "";
+		altButton.value = node.querySelector('iframe').title || "";
 		selectAll(altButton);
 	});
 	return altButton;
 }
 
-function makeLinkButton(node, link) {
-	const altButton = document.createElement('input');
-	altButton.className = 'quill-image__link';
-	altButton.placeholder = 'https://google.com';
-	altButton.required = true;
-	altButton.type = 'url';
-	altButton.value = link && link.getAttribute('href') !== '#' ? link : '';
+function makeLinkButton(node) {
+	const linkButton = document.createElement('input');
 
-	altButton.addEventListener('keydown', e => e.keyCode === 13 ? e.preventDefault() : null, true);
-	altButton.addEventListener('keyup', e => e.keyCode === 13 ? e.preventDefault() : null, true);
-	altButton.addEventListener('keypress', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	const iframe = node.querySelector('iframe');
+	linkButton.className = 'quill-video__link';
+	linkButton.placeholder = 'https://youtube.com/embed/000000000000';
+	linkButton.required = true;
+	linkButton.type = 'url';
+	linkButton.value = iframe && iframe.getAttribute('src') !== TRANSPARENT_PIXEL ? iframe.getAttribute('src') : '';
 
-	altButton.addEventListener('input', e => {
-		link.setAttribute('href', altButton.value);
-		altButton.value ? node.appendChild(link) : link.remove();
+	linkButton.addEventListener('keydown', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	linkButton.addEventListener('keyup', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+	linkButton.addEventListener('keypress', e => e.keyCode === 13 ? e.preventDefault() : null, true);
+
+	linkButton.addEventListener('input', e => {
+		iframe.setAttribute('src', getVideoUrl(linkButton.value));
 	});
-	altButton.addEventListener('blur', e => {
-		link.setAttribute('href', altButton.value);
-		altButton.value ? node.appendChild(link) : link.remove();
+	linkButton.addEventListener('blur', e => {
+		iframe.setAttribute('src', getVideoUrl(linkButton.value));
 	});
-	altButton.addEventListener('focus', e => {
-		const url = link.getAttribute('href');
-		altButton.value = url && url !== '#' ? url : '';
-		selectAll(altButton);
+	linkButton.addEventListener('focus', e => {
+		const url = iframe.getAttribute('src');
+		linkButton.value = url && url !== TRANSPARENT_PIXEL ? url : '';
+		selectAll(linkButton);
 	});
-	return altButton;
+	return linkButton;
 }
 
 function makeCaptionEdit(node){
 	const captionInput = document.createElement('textarea');
-	captionInput.className = 'quill-image__caption-edit';
-	captionInput.placeholder = 'Type caption for image (optional)';
+	captionInput.className = 'quill-video__caption-edit';
+	captionInput.placeholder = 'Type caption for video (optional)';
 	captionInput.value = node.querySelector('figcaption').innerText.trim();
 	captionInput.style.height = node.querySelector('figcaption').getBoundingClientRect().height + 'px';
 
@@ -135,61 +149,35 @@ function makeCaptionEdit(node){
 }
 
 function makeEmbed(Quill, options) {
-	if (!document.getElementById('quill-image-styles')) { addStyleString('quill-image-styles', STYLES); }
+	if (!document.getElementById('quill-video-styles')) { addStyleString('quill-video-styles', STYLES); }
 
 	const BlockEmbed = Quill.import('blots/block/embed');
 
-	class ImageBlot extends BlockEmbed {
+	class VideoBlot extends BlockEmbed {
 		static create(value) {
 			let node = super.create();
-			node.id = value.imageId;
+			node.id = value.videoId;
 			node.setAttribute('contenteditable', false);
 			node.setAttribute('tabIndex', -1);
 			node.dataset.format = value.format || 'center';
-			let img = document.createElement('img');
-			img.setAttribute('alt', value.alt || '');
-			img.setAttribute('src', value.src || TRANSPARENT_PIXEL);
 
-			if (value.link === '#') { value.link = undefined; }
+			const wrapper = document.createElement('div');
+			wrapper.classList.add('quill-video__wrapper');
 
-			let link = document.createElement('a');
-			link.setAttribute('href', value.link || '#');
-			link.setAttribute('aria-describedby', value.imageId);
-			link.setAttribute('target', '_blank');
-			node.__link__ = link;
-
-			let input = document.createElement('input');
-			input.setAttribute('type', 'file');
-			input.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
-			node._input = input;
+			let iframe = document.createElement('iframe');
+			iframe.setAttribute('title', value.title || '');
+			iframe.setAttribute('src', getVideoUrl(value.src));
+			iframe.setAttribute('frameborder', '0');
+			iframe.setAttribute('allow', 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture');
+			iframe.setAttribute('allowfullscreen', '1');
 
 			let caption = document.createElement('figcaption');
 			caption.innerText = value.caption || '';
 			caption.setAttribute('tabIndex', -1);
 
-			node.appendChild(img);
+			wrapper.appendChild(iframe);
+			node.appendChild(wrapper);
 			node.appendChild(caption);
-
-			if (value.link) {
-				node.appendChild(link);
-			}
-
-			input.addEventListener('change', (e) => {
-				var files = e.target.files, file;
-				if (files.length > 0) {
-					file = files[0];
-					const type = file.type;
-					const reader = new FileReader();
-					reader.onload = async (e) => {
-						let dataUrl = e.target.result;
-						img.setAttribute('src', dataUrl);
-						dataUrl = await options.handler(node.id, dataUrl, type);
-						img.setAttribute('src', dataUrl);
-						input.value = '';
-					}
-					reader.readAsDataURL(file)
-				}
-			});
 
 			// Quill focuses out on mousedown... Thanks Quill...
 			node.addEventListener('mousedown', (evt) => evt.stopPropagation(), false);
@@ -201,37 +189,16 @@ function makeEmbed(Quill, options) {
 			node.addEventListener('change', (evt) => evt.stopPropagation(), false);
 			node.addEventListener('input', (evt) => evt.stopPropagation(), false);
 			node.addEventListener('update', (evt) => evt.stopPropagation(), false);
-			node.addEventListener('dragover', (evt) => { evt.preventDefault(); evt.target.focus(); evt.dataTransfer.dropEffect = "move"; }, false);
-			node.addEventListener('drop', (evt) => {
-				if (evt.dataTransfer && evt.dataTransfer.files && evt.dataTransfer.files.length) {
-					[].forEach.call(evt.dataTransfer.files, file => {
-						var type = file.type
-						if (!type.match(/^image\/(gif|jpe?g|a?png|svg|webp|bmp)/i)) return;
-						evt.stopPropagation();
-						evt.preventDefault();
-						const reader = new FileReader()
-						reader.onload = async (e) => {
-							let dataUrl = e.target.result;
-							img.setAttribute('src', dataUrl);
-							dataUrl = await options.handler(node.id, dataUrl, type);
-							img.setAttribute('src', dataUrl);
-							input.value = '';
-						}
-						const blob = file.getAsFile ? file.getAsFile() : file
-						if (blob instanceof Blob) reader.readAsDataURL(blob)
-					});
-				}
-			}, false);
 
 			let raf = undefined;
 			node.addEventListener('focusin', (e) => {
 				window.cancelAnimationFrame(raf);
-				raf = window.requestAnimationFrame(() => ImageBlot.process(node));
+				raf = window.requestAnimationFrame(() => VideoBlot.process(node));
 			}, false);
 
 			node.addEventListener('focusout', (e) => {
 				window.cancelAnimationFrame(raf);
-			  raf = window.requestAnimationFrame(() => ImageBlot.process(node));
+			  raf = window.requestAnimationFrame(() => VideoBlot.process(node));
 			}, false);
 
 			return node;
@@ -240,20 +207,19 @@ function makeEmbed(Quill, options) {
 		static process(node) {
 			const active = document.activeElement;
 			const isFocused = node === active || node.contains(active);
-			if (isFocused) { ImageBlot.complexify(node); }
-			else { ImageBlot.simplify(node); }
+			if (isFocused) { VideoBlot.complexify(node); }
+			else { VideoBlot.simplify(node); }
 		}
 
 		static complexify(node) {
 			const active = document.activeElement;
-			if (!!node.querySelector('.quill-image__format')) { return; }
+			if (!!node.querySelector('.quill-video__format')) { return; }
 			// console.log('complexify', node.id);
 			const caption = node.querySelector('figcaption');
 			node.insertBefore(makeMenu(node), caption);
 			node.insertBefore(makeAltButton(node), caption);
-			node.insertBefore(makeLinkButton(node, node.__link__), caption);
+			node.insertBefore(makeLinkButton(node), caption);
 			node.insertBefore(makeCaptionEdit(node), caption);
-			node.appendChild(node._input);
 			if (active === caption) {
 				node.querySelector('textarea').focus();
 			}
@@ -264,15 +230,14 @@ function makeEmbed(Quill, options) {
 		}
 
 		static simplify(node) {
-			if (!node.querySelector('.quill-image__format')) { return; }
+			if (!node.querySelector('.quill-video__format')) { return; }
 			// console.log('simplify', node.id);
 			const caption = node.querySelector('figcaption');
 			caption.innerText = caption.innerText.trim();
-			Array.from(node.querySelectorAll('.quill-image__format')).forEach(e => e.remove());
-			Array.from(node.querySelectorAll('.quill-image__alt')).forEach(e => e.remove());
-			Array.from(node.querySelectorAll('.quill-image__link')).forEach(e => e.remove());
-			Array.from(node.querySelectorAll('.quill-image__caption-edit')).forEach(e => e.remove());
-			node.removeChild(node._input);
+			Array.from(node.querySelectorAll('.quill-video__format')).forEach(e => e.remove());
+			Array.from(node.querySelectorAll('.quill-video__alt')).forEach(e => e.remove());
+			Array.from(node.querySelectorAll('.quill-video__link')).forEach(e => e.remove());
+			Array.from(node.querySelectorAll('.quill-video__caption-edit')).forEach(e => e.remove());
 			setTimeout(() => {
 				node.dispatchEvent(new Event(CUSTOM_BLUR_EVENT_NAME, { "bubbles": true }));
 			}, 10);
@@ -280,10 +245,9 @@ function makeEmbed(Quill, options) {
 
 		static value(node) {
 			return {
-				imageId: node.id,
-				alt: node.querySelector('img').getAttribute('alt') || undefined,
-				src: node.querySelector('img').getAttribute('src'),
-				link: node.querySelector('a') ? node.querySelector('a').getAttribute('href') || undefined : undefined,
+				videoId: node.id,
+				alt: node.querySelector('iframe').getAttribute('title') || undefined,
+				src: node.querySelector('iframe').getAttribute('src'),
 				caption: node.querySelector('figcaption') ? node.querySelector('figcaption').innerText || undefined : undefined,
 				format: node.dataset.format || 'center',
 			};
@@ -295,17 +259,17 @@ function makeEmbed(Quill, options) {
 			dom._blot = this;
 		}
 
-		value() { return { image: ImageBlot.value(this.domNode) }; }
+		value() { return { image: VideoBlot.value(this.domNode) }; }
 		get isBlock() { return true; }
 	}
-	ImageBlot.blotName = 'image';
-	ImageBlot.tagName = 'figure';
-	ImageBlot.className = 'quill-image';
-	Quill.register(ImageBlot);
-	return ImageBlot;
+	VideoBlot.blotName = 'image';
+	VideoBlot.tagName = 'figure';
+	VideoBlot.className = 'quill-video';
+	Quill.register(VideoBlot);
+	return VideoBlot;
 }
 
-class QuillImage {
+class QuillVideo {
 
 	constructor(Quill, options = {}) {
 		const Delta = Quill.import('delta');
@@ -323,8 +287,6 @@ class QuillImage {
     const prev = Quill.prototype.setContents;
     Quill.prototype.setContents = function () {
 			const quill = this;
-			quill.root.addEventListener('drop', self.handleDrop.bind(self, quill), true);
-			quill.root.addEventListener('paste', self.handlePaste.bind(self, quill), true);
 			quill.root.addEventListener('keydown', self.handleKeyDown.bind(self, quill), true);
 
 			// Force a text-change event trigger so consumers get the updated markup!
@@ -347,7 +309,7 @@ class QuillImage {
 				const prev = window.scrollTop
 				window.requestAnimationFrame(() => {
 					if(node === document.activeElement || node.contains(document.activeElement)) { return; }
-					if (isQuillImageBlot(node) && !node.querySelector('.quill-image__format')) { node.focus(); }
+					if (isQuillVideoBlot(node) && !node.querySelector('.quill-video__format')) { node.focus(); }
 					window.scrollTop = prev;
 				});
 				return true;
@@ -361,7 +323,7 @@ class QuillImage {
 	handleKeyDown(quill, e) {
 
 		// TODO: Enable basic text shortcuts anywhere inside of our plugin (stealing them back from Quill).
-		if (isInsideQuillImageBlot(e.target)) {
+		if (isInsideQuillVideoBlot(e.target)) {
 			e.stopImmediatePropagation();
 			if (e.target.tagName !== 'TEXTAREA' || e.target.tagName !== 'INPUT') { /* NOOP */ }
 			else if (e.keyCode === 65 && e.metaKey) {
@@ -381,7 +343,7 @@ class QuillImage {
 			}
 		}
 
-		if (!isQuillImageBlot(e.target)) { return; }
+		if (!isQuillVideoBlot(e.target)) { return; }
 
 		// Delete
 		const scrollPos = document.scrollingElement.scrollTop;
@@ -414,7 +376,7 @@ class QuillImage {
 			const idx = quill.getIndex(e.target._blot);
 			quill.setSelection(idx - 1, 0);
 			const leaf = quill.getLeaf(idx - 1)[0];
-			if (isQuillImageBlot(leaf)) { leaf.domNode.focus(); }
+			if (isQuillVideoBlot(leaf)) { leaf.domNode.focus(); }
 		}
 		// Down / Right Arrow
 		else if (e.keyCode === 40 || e.keyCode === 39) {
@@ -423,56 +385,18 @@ class QuillImage {
 			const idx = quill.getIndex(e.target._blot);
 			quill.setSelection(idx + 1, 0);
 			const leaf = quill.getLeaf(idx + 1)[0];
-			if (isQuillImageBlot(leaf)) { leaf.domNode.focus(); }
+			if (isQuillVideoBlot(leaf)) { leaf.domNode.focus(); }
 		}
 		document.scrollingElement.scrollTop = scrollPos;
-	}
-
-	/* handle image drop event */
-	handleDrop (quill, e) {
-		e.preventDefault()
-		if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-			if (document.caretRangeFromPoint) {
-				const selection = document.getSelection()
-				const range = document.caretRangeFromPoint(e.clientX, e.clientY)
-				if (selection && range) {
-					selection.setBaseAndExtent(range.startContainer, range.startOffset, range.startContainer, range.startOffset)
-				}
-			}
-			this.readFiles(e.dataTransfer.files, this.insert.bind(this, quill), e)
-		}
-	}
-
-	/* handle image paste event, steal back from Quill */
-	handlePaste (quill, e) {
-		e.stopImmediatePropagation();
-		if (e.clipboardData && e.clipboardData.items && e.clipboardData.items.length) {
-			this.readFiles(e.clipboardData.items, this.insert.bind(this, quill), e)
-		}
-	}
-
-	/* read the files */
-	readFiles (files, callback, e) {
-		[].forEach.call(files, file => {
-			var type = file.type
-			if (!type.match(/^image\/(gif|jpe?g|a?png|svg|webp|bmp)/i)) return
-			e.preventDefault()
-			const reader = new FileReader()
-			reader.onload = (e) => {
-				callback(e.target.result, type)
-			}
-			const blob = file.getAsFile ? file.getAsFile() : file
-			if (blob instanceof Blob) reader.readAsDataURL(blob)
-		})
 	}
 
 	/* insert into the editor
 	*/
 	async insert (quill, dataUrl, type) {
-		const imageId = guid();
+		const videoId = guid();
 		const index = (quill.getSelection() || {}).index || quill.getLength();
 		quill.insertEmbed(index, 'image', {
-			imageId,
+			videoId,
 			src: dataUrl,
 			alt: undefined,
 			link: undefined,
@@ -481,15 +405,15 @@ class QuillImage {
 			handler: this.options.handler,
 		}, 'user');
 		quill.formatText(index, 1, 'image');
-		document.getElementById(imageId).focus();
+		document.getElementById(videoId).focus();
 		if (dataUrl && type) {
-			const url = await this.options.handler(quill, imageId, dataUrl, type);
-			document.getElementById(imageId).querySelector('img').setAttribute('src', url);
+			const url = await this.options.handler(quill, videoId, dataUrl, type);
+			document.getElementById(videoId).querySelector('img').setAttribute('src', url);
 		}
 	}
 }
 
 export {
-	QuillImage,
-	QuillImageBindings
+	QuillVideo,
+	QuillVideoBindings
 };

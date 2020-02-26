@@ -1,43 +1,43 @@
-import { isQuillImageBlot, getPrevQuillImageBlot, getNextQuillImageBlot } from './utils';
+import { isQuillVideoBlot, getPrevQuillVideoBlot, getNextQuillVideoBlot } from './utils';
 
-export const QuillImageBindings = {
-	'quill-image:backspace': {
+export const QuillVideoBindings = {
+	'quill-video:backspace': {
 		key: 'backspace',
 		handler: function(range, keycontext) {
 			const blot = this.quill.getLeaf(range.index)[0];
 			const node = blot.domNode;
-			if (isQuillImageBlot(node)) { return true; }
-      const prevQuillImageBlock = getPrevQuillImageBlot(blot);
-			if (prevQuillImageBlock && !blot.value()) {
+			if (isQuillVideoBlot(node)) { return true; }
+      const prevQuillVideoBlock = getPrevQuillVideoBlot(blot);
+			if (prevQuillVideoBlock && !blot.value()) {
 				this.quill.deleteText(range.index, 1, this.quill.constructor.sources.USER);
-				this.quill.setSelection(this.quill.getIndex(prevQuillImageBlock), 0);
-				prevQuillImageBlock.domNode.focus();
+				this.quill.setSelection(this.quill.getIndex(prevQuillVideoBlock), 0);
+				prevQuillVideoBlock.domNode.focus();
 				return false;
 			}
 			return true;
 		}
 	},
-	'quill-image:up': {
+	'quill-video:up': {
 		key: 'up',
 		handler: function(range, keycontext) {
 			const blot = this.quill.getLeaf(range.index)[0];
-			const prevQuillImageBlock = getPrevQuillImageBlot(blot);
-			if (prevQuillImageBlock) {
-				this.quill.setSelection(this.quill.getIndex(prevQuillImageBlock), 0);
-				prevQuillImageBlock.domNode.focus();
+			const prevQuillVideoBlock = getPrevQuillVideoBlot(blot);
+			if (prevQuillVideoBlock) {
+				this.quill.setSelection(this.quill.getIndex(prevQuillVideoBlock), 0);
+				prevQuillVideoBlock.domNode.focus();
 				return false;
 			}
 			return true;
 		}
 	},
-	'quill-image:down': {
+	'quill-video:down': {
 		key: 'down',
 		handler: function(range, keycontext) {
 			const blot = this.quill.getLeaf(range.index)[0];
-			const nextQuillImageBlock = getNextQuillImageBlot(blot);
-			if (nextQuillImageBlock) {
-				this.quill.setSelection(this.quill.getIndex(nextQuillImageBlock), 0);
-				nextQuillImageBlock.domNode.focus();
+			const nextQuillVideoBlock = getNextQuillVideoBlot(blot);
+			if (nextQuillVideoBlock) {
+				this.quill.setSelection(this.quill.getIndex(nextQuillVideoBlock), 0);
+				nextQuillVideoBlock.domNode.focus();
 				return false;
 			}
 			return true;
