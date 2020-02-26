@@ -27,6 +27,7 @@ const ICONS = {
 }
 
 function getVideoUrl(url) {
+	if (!url) { return TRANSPARENT_PIXEL; }
 	const { id, service } = getVideoId(url);
 	if (!id || !service) { return TRANSPARENT_PIXEL; }
 	switch (service) {

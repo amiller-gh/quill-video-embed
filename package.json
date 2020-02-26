@@ -1,6 +1,6 @@
 {
   "name": "quill-video-embed",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A quill editor module for video embeds.",
   "main": "dist/index.js",
   "scripts": {
