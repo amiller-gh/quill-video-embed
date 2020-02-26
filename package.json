@@ -1,11 +1,12 @@
 {
   "name": "quill-video-embed",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A quill editor module for video embeds.",
   "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && mkdir dist && babel src --presets=es2015 --out-dir dist",
-    "watch": "watch 'yarn run build' './src' --wait=0.3"
+    "watch": "watch 'yarn run build' './src' --wait=0.3",
+    "prepublish": "yarn build"
   },
   "keywords": [
     "quill",
