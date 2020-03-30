@@ -83,7 +83,7 @@ function makeMenu(node) {
 function makeAltButton(node) {
 	const altButton = document.createElement('input');
 	altButton.className = 'quill-video__alt';
-	altButton.placeholder = 'Title text for image (optional)';
+	altButton.placeholder = 'Title text for video (optional)';
 	altButton.required = true;
 	altButton.value = node.querySelector('iframe').title ? "Title" : "";
 
@@ -260,10 +260,10 @@ function makeEmbed(Quill, options) {
 			dom._blot = this;
 		}
 
-		value() { return { image: VideoBlot.value(this.domNode) }; }
+		value() { return { video: VideoBlot.value(this.domNode) }; }
 		get isBlock() { return true; }
 	}
-	VideoBlot.blotName = 'image';
+	VideoBlot.blotName = 'video';
 	VideoBlot.tagName = 'figure';
 	VideoBlot.className = 'quill-video';
 	Quill.register(VideoBlot);
@@ -396,7 +396,7 @@ class QuillVideo {
 	async insert (quill, dataUrl, type) {
 		const videoId = guid();
 		const index = (quill.getSelection() || {}).index || quill.getLength();
-		quill.insertEmbed(index, 'image', {
+		quill.insertEmbed(index, 'video', {
 			videoId,
 			src: dataUrl,
 			alt: undefined,
@@ -405,12 +405,8 @@ class QuillVideo {
 			format: 'center',
 			handler: this.options.handler,
 		}, 'user');
-		quill.formatText(index, 1, 'image');
+		quill.formatText(index, 1, 'video');
 		document.getElementById(videoId).focus();
-		if (dataUrl && type) {
-			const url = await this.options.handler(quill, videoId, dataUrl, type);
-			document.getElementById(videoId).querySelector('img').setAttribute('src', url);
-		}
 	}
 }
 
