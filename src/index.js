@@ -395,7 +395,10 @@ class QuillVideo {
 	*/
 	async insert (quill, dataUrl, type) {
 		const videoId = guid();
-		const index = (quill.getSelection() || {}).index || quill.getLength();
+		let index = (quill.getSelection() || {}).index;
+		if (!Number.isInteger(index)) {
+			index = quill.getLength();
+		}
 		quill.insertEmbed(index, 'video', {
 			videoId,
 			src: dataUrl,
